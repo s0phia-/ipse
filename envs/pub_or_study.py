@@ -57,13 +57,17 @@ class StudentDilemma:
     def step(self, action):
         err_msg = f"{action} invalid in this state."
         assert action in self.get_available_actions(), err_msg
+        # perform action to move to next state
         next_state = self.transitions[self.state][action]
         self.state = next_state
         reward = self.rewards[self.state]
+        # if next state is random, don't give back control to user until out of a random state
         while next_state in self.nondeterministic_states:
+            # so the user can see which random states are being visited
             self.render()
             next_state = np.random.choice(self.state_space, p=self.transitions[self.state])
             self.state = next_state
+            # return cumulative reward after the agent is out of a random state
             reward += self.rewards[self.state]
         self.action_space = self.get_available_actions()
         if self.state in self.terminal_states:
