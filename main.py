@@ -1,13 +1,14 @@
 from envs.cartpole_rbf import CartPoleRBF
-
+from envs.pub_or_study import StudentDilemma
 
 if __name__ == '__main__':
     env = CartPoleRBF()
     env.reset()
-    for _ in range(20):
-        env.render()
+    env.render()
+    for _ in range(1000):
         action = env.action_space.sample()
-        env.step(action)
-        print(action)
-        print(env.features)
+        _, _, done, _ = env.step(action)
+        env.render()
+        if done:
+            break
     env.close()
