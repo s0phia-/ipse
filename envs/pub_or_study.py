@@ -18,7 +18,7 @@ class StudentDilemma:
         # 5: study 3 and pass, end state
         # 6: pub, random state
         self.state_space = [0, 1, 2, 3, 4, 5, 6]
-        self.terminal_states = {5, 6}
+        self.terminal_states = {4, 5}
         # fun | fulfillment | tiredness | parent disappointment
         self.state_features = [[0.2, -1, 0.1, 1],
                                [0, 0, 0, 0],
@@ -28,25 +28,18 @@ class StudentDilemma:
                                [-1, 1, 0.9, -1],
                                [1, 0.2, 0.4, 1]]
         self.rewards = [-1, 0, -2, -2, 0, 10, 1]
-        # actions
-        # 0: study
-        # 1: pub
-        # 2: sleep
-        # 3: social media
-        # 4: quit social media
-        self.action_space = [{3, 4},
-                             {0, 3},
-                             {0, 2},
-                             {0, 1},
-                             {},
-                             {},
-                             {}]
         self.deterministic_states = {0, 1, 2, 3, 4, 5}
         self.nondeterministic_states = {6}
         err_msg = "Each state must be classed as deterministic or nondeterministic"
         assert set.union(self.deterministic_states, self.nondeterministic_states) == set(self.state_space), err_msg
         # deterministic states map actions to resulting states
         # nondeterministic states map to states with transition probabilities
+        # actions:
+        # 0: study
+        # 1: pub
+        # 2: sleep
+        # 3: social media
+        # 4: quit social media
         self.transitions = [[None, None, None, 0, 1],
                             [2, None, None, 0, None],
                             [3, None, 4, None, None],
@@ -55,22 +48,26 @@ class StudentDilemma:
                             [None, None, None, None, None],
                             [0, .2, .4, .4, 0, 0, 0]]
         self.state = 1
+        self.action_space = self.get_available_actions()
         self.done = False
 
     def get_available_actions(self):
-        return self.action_space[self.state]
+        return JankyActionSpace([i for i, v in enumerate(self.transitions[self.state]) if v is not None])
 
     def step(self, action):
         err_msg = f"{action} invalid in this state."
         assert action in self.get_available_actions(), err_msg
-        if self.state in self.deterministic_states:
-            next_state = self.transitions[self.state][action]
-        else:
-            next_state = np.random.choice(self.state_space, p=self.transitions[self.state])
+        next_state = self.transitions[self.state][action]
         self.state = next_state
+        reward = self.rewards[self.state]
+        while next_state in self.nondeterministic_states:
+            self.render()
+            next_state = np.random.choice(self.state_space, p=self.transitions[self.state])
+            self.state = next_state
+            reward += self.rewards[self.state]
+        self.action_space = self.get_available_actions()
         if self.state in self.terminal_states:
             self.done = True
-        reward = self.rewards[self.state]
         return np.array(self.state_features[self.state]), reward, self.done, {}
 
     def reset(self):
@@ -78,4 +75,18 @@ class StudentDilemma:
         self.state = 1
 
     def render(self):
+        print(f"Current state: {self.state}")
+
+    def close(self):
         pass
+
+class JankyActionSpace(np.ndarray):
+    def __new__(cls, a):
+        obj = np.asarray(a).view(cls)
+        return obj
+
+    def sample(self):
+        if self.size > 0:
+            return np.random.choice(self)
+        else:
+            return None
