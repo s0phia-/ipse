@@ -1,0 +1,81 @@
+"""
+Environment based on the MDP described in David Silver's RL course
+Slide 25, link: https://www.davidsilver.uk/wp-content/uploads/2020/03/MDP.pdf
+"""
+
+import numpy as np
+
+
+class StudentDilemma:
+
+    def __init__(self):
+        # states:
+        # 0: on social media
+        # 1: nothing
+        # 2: study 1
+        # 3: study 2
+        # 4: sleep and fail, end state
+        # 5: study 3 and pass, end state
+        # 6: pub, random state
+        self.state_space = [0, 1, 2, 3, 4, 5, 6]
+        self.terminal_states = {5, 6}
+        # fun | fulfillment | tiredness | parent disappointment
+        self.state_features = [[0.2, -1, 0.1, 1],
+                               [0, 0, 0, 0],
+                               [-1, 0.1, 0.5, -0.2],
+                               [-1, 0.3, 0.7, -0.2],
+                               [0, 0, -1, 1],
+                               [-1, 1, 0.9, -1],
+                               [1, 0.2, 0.4, 1]]
+        self.rewards = [-1, 0, -2, -2, 0, 10, 1]
+        # actions
+        # 0: study
+        # 1: pub
+        # 2: sleep
+        # 3: social media
+        # 4: quit social media
+        self.action_space = [{3, 4},
+                             {0, 3},
+                             {0, 2},
+                             {0, 1},
+                             {},
+                             {},
+                             {}]
+        self.deterministic_states = {0, 1, 2, 3, 4, 5}
+        self.nondeterministic_states = {6}
+        err_msg = "Each state must be classed as deterministic or nondeterministic"
+        assert set.union(self.deterministic_states, self.nondeterministic_states) == set(self.state_space), err_msg
+        # deterministic states map actions to resulting states
+        # nondeterministic states map to states with transition probabilities
+        self.transitions = [[None, None, None, 0, 1],
+                            [2, None, None, 0, None],
+                            [3, None, 4, None, None],
+                            [5, 6, None, None, None],
+                            [None, None, None, None, None],
+                            [None, None, None, None, None],
+                            [0, .2, .4, .4, 0, 0, 0]]
+        self.state = 1
+        self.done = False
+
+    def get_available_actions(self):
+        return self.action_space[self.state]
+
+    def step(self, action):
+        err_msg = f"{action} invalid in this state."
+        assert action in self.get_available_actions(), err_msg
+        if self.state in self.deterministic_states:
+            next_state = self.transitions[self.state][action]
+        else:
+            next_state = np.random.choice(self.state_space, p=self.transitions[self.state])
+        self.state = next_state
+        if self.state in self.terminal_states:
+            self.done = True
+        reward = self.rewards[self.state]
+        return np.array(self.state_features[self.state]), reward, self.done, {}
+
+    def reset(self):
+        self.done = False
+        self.state = 1
+
+    def render(self):
+        pass
