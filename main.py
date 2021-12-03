@@ -7,6 +7,7 @@ if __name__ == '__main__':
     env.render()
     for _ in range(1000):
         action = env.action_space.sample()
+        print(env.lookahead_one_step())
         _, _, done, _ = env.step(action)
         env.render()
         if done:

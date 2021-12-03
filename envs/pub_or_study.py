@@ -50,6 +50,7 @@ class StudentDilemma:
         self.state = 1
         self.action_space = self.get_available_actions()
         self.done = False
+        self.steps_beyond_done = None  # for consistency with Gym, not used
 
     def get_available_actions(self):
         return JankyActionSpace([i for i, v in enumerate(self.transitions[self.state]) if v is not None])
@@ -83,6 +84,19 @@ class StudentDilemma:
 
     def close(self):
         pass
+
+    def lookahead_one_step(self):
+        current_state = self.state
+        current_action_space = self.action_space
+        current_done = self.done
+        next_state_actions = []
+        for a in current_action_space:
+            next_state_actions.append(self.step(a))
+            self.state = current_state
+            self.action_space = current_action_space
+            self.done = current_done
+        return next_state_actions
+
 
 class JankyActionSpace(np.ndarray):
     def __new__(cls, a):
