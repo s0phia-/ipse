@@ -9,35 +9,39 @@ class CartPoleRBF(CartPoleEnv):
         # setup features based on Least-Squares Policy Iteration
         self.theta_rbf = [-math.pi / 4, 0, math.pi / 4]
         self.omega_rbf = [-1, 0, 1]
-        self.features = np.zeros((2, 10))
+        self.state_features = np.zeros(10)
 
-    def get_features(self, action):
+    def get_features(self):
         theta = self.state[2]
         omega = self.state[3]
         rbf = [math.exp(-np.linalg.norm([theta - self.theta_rbf[i], omega - self.omega_rbf[j]]) / 2)
                for i in range(len(self.theta_rbf)) for j in range(len(self.omega_rbf))]
-        features = np.zeros(self.features.shape)
-        features[action, :] = np.append([1], rbf)
-        self.features = features
+        self.state_features = rbf
+        return rbf
 
     def step(self, action):
         _, reward, done, info = super().step(action)
-        self.get_features(action)
-        return self.features, reward, done, info
+        self.get_features()
+        return self.state_features, reward, done, info
 
-    def lookahead_one_step(self):
+    def get_sa_pairs(self):
         current_state = self.state
-        current_action_space = self.action_space
         current_steps_beyond_done = self.steps_beyond_done
-        current_features = self.features
         next_state_actions = []
         for a in self.discrete_to_list():
             next_state_actions.append(self.step(a))
-            self.state = current_state
-            self.action_space = current_action_space
-            self.steps_beyond_done = current_steps_beyond_done
-            self.features = current_features
+            self.set_to_state(current_state, current_steps_beyond_done)
         return next_state_actions
+
+    def get_current_state(self):
+        """return the info necessary to reset the environment to the present state"""
+        return self.state, self.steps_beyond_done
+
+    def set_to_state(self, state, steps_beyond_done):
+        """reset the environment to a specified state"""
+        self.state = state
+        self.steps_beyond_done = steps_beyond_done
+        self.state_features = self.get_features()
 
     def discrete_to_list(self, start=0):
         """Convert a discrete object as defined in AI gym to a list"""

@@ -55,29 +55,29 @@ class StudentDilemma:
     def get_available_actions(self):
         return JankyActionSpace([i for i, v in enumerate(self.transitions[self.state]) if v is not None])
 
-    def step(self, action):
+    def step(self, action, just_looking=False):
         err_msg = f"{action} invalid in this state."
         assert action in self.get_available_actions(), err_msg
         # perform action to move to next state
         next_state = self.transitions[self.state][action]
         self.state = next_state
         reward = self.rewards[self.state]
-        # if next state is random, don't give back control to user until out of a random state
-        while next_state in self.nondeterministic_states:
-            # so the user can see which random states are being visited
-            self.render()
-            next_state = np.random.choice(self.state_space, p=self.transitions[self.state])
-            self.state = next_state
-            # return cumulative reward after the agent is out of a random state
-            reward += self.rewards[self.state]
+        if not just_looking:
+            # if next state is random, don't give back control to user until out of a random state
+            while next_state in self.nondeterministic_states:
+                # so the user can see which random states are being visited
+                self.render()
+                next_state = np.random.choice(self.state_space, p=self.transitions[self.state])
+                self.state = next_state
+                # return cumulative reward after the agent is out of a random state
+                reward += self.rewards[self.state]
         self.action_space = self.get_available_actions()
         if self.state in self.terminal_states:
             self.done = True
         return np.array(self.state_features[self.state]), reward, self.done, {}
 
     def reset(self):
-        self.done = False
-        self.state = 1
+        self.set_to_state(1, self.get_available_actions(), False)
 
     def render(self):
         print(f"Current state: {self.state}")
@@ -85,17 +85,25 @@ class StudentDilemma:
     def close(self):
         pass
 
-    def lookahead_one_step(self):
+    def get_sa_pairs(self):
         current_state = self.state
         current_action_space = self.action_space
         current_done = self.done
         next_state_actions = []
         for a in current_action_space:
-            next_state_actions.append(self.step(a))
-            self.state = current_state
-            self.action_space = current_action_space
-            self.done = current_done
+            next_state_actions.append(self.step(a, True))
+            self.set_to_state(current_state, current_action_space, current_done)
         return next_state_actions
+
+    def set_to_state(self, state, action_space, done):
+        """reset the environment to a specified state"""
+        self.state = state
+        self.action_space = action_space
+        self.done = done
+
+    def get_current_state(self):
+        """return the info necessary to reset the environment to the present state"""
+        return self.state, self.action_space, self.done
 
 
 class JankyActionSpace(np.ndarray):
