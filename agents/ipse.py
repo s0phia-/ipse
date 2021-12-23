@@ -70,6 +70,59 @@ class Ipse(Rbpi):
             self.policy.data_set = data_set
 
 
+class ContinualIpse(Rbpi):
+    """
+    Version of Iterative policy-space expansion, where the
+    algorithm does not wait for all feature directions
+    to be decided before starting to learn linear models.
+
+    There is no switch between policy approximation architectures
+    anymore (this is the case in Ipse()). Instead, there is
+    only one self.policy (e.g., MultinomialLogisticRegression)
+    which starts off having zero weights.
+
+    The self.learning_feature_direction_policy updates/informs
+    self.policy whenever a new feature direction is learned.
+    """
+    def __init__(
+            self,
+            env,
+            direction_learner,
+            policy,
+            rollout_handler,
+    ):
+        super().__init__(
+            env=env,
+            policy_approximator=policy,
+            rollout_handler=rollout_handler
+        )
+        self.policy = policy
+        self.direction_learner = direction_learner
+
+    def learn(self, *args, **kwargs):
+        """
+        TODO
+
+        Perform a rollout and add relevant information to the data set.
+        As long as not all feature directions are decided:
+            - update positive/negative feature associations
+            - check whether feature directions can be decided
+            - pass feature direction information to self.policy
+            As soon as there is at least one feature direction:1§1§ m,.
+                - fit a linear policy to the data for all features that
+                  have been "directed".
+        When all feature directions haven been decided:
+            - fit a linear policy on all directed features
+        """
+        # TODO
+
+        # # Rollouts
+        # rollout = self.rollout_handler.perform_rollouts(self.policy)
+        #
+        # # Append rollout data to policy.data_set
+        # self.policy.append_data(**rollout)
+
+
 def create_ipse(env, parameter_dict, rollout_state_population):
     p = parameter_dict
 
