@@ -3,8 +3,8 @@ from dqn_style_run_files.plot import plot_dict
 from envs.cartpole_rbf import CartPoleRBF
 from agents.QEW import QEW
 
-num_episodes = 500
-max_length_episode = 100
+num_episodes = 200
+max_length_episode = 60
 sleep_every_step = 0
 evaluate_every_x_episodes = 10
 evaluate_iterations = 5
@@ -24,5 +24,4 @@ if __name__ == '__main__':
         del env
     except ImportError:
         pass
-    plt.plot(all_returns)
-    plt.show()
+    plot_dict(all_returns, evaluate_every_x_episodes, "Regularisation Strength")
