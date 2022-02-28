@@ -1,6 +1,5 @@
-import matplotlib.pyplot as plt
-import statistics
-from dqn_style_run_files.evaluate import evaluate, learn_and_evaluate
+from dqn_style_run_files.evaluate import control_evaluation
+from dqn_style_run_files.plot import plot_dict
 from envs.cartpole_rbf import CartPoleRBF
 from agents.QEW import QEW
 
@@ -9,17 +8,17 @@ max_length_episode = 100
 sleep_every_step = 0
 evaluate_every_x_episodes = 10
 evaluate_iterations = 5
+regularisation_strengths = [0, .01, .1, 1, 2, 5]
 
 
 if __name__ == '__main__':
-    all_returns = []
+    all_returns = {}
     env = CartPoleRBF()
-    agent = QEW(num_features=env.num_features, actions=env.action_space)
-    for i in range(num_episodes/evaluate_every_x_episodes):
-        learn_and_evaluate(agent, env, sleep_every_step, evaluate_every_x_episodes, max_length_episode)
-        if i % evaluate_every_x_episodes == 0:
-            returns = evaluate(agent, env, sleep_every_step, evaluate_iterations, max_length_episode)
-            all_returns.append(statistics.mean(returns))
+    for regularisation_cnst in regularisation_strengths:
+        agent = QEW(num_features=env.num_features, actions=env.action_space, regularisation_strength=1, exploration=.15)
+        returns = control_evaluation(agent, env, sleep_every_step,  num_episodes, max_length_episode,
+                                     evaluate_every_x_episodes, evaluate_iterations)
+        all_returns[regularisation_cnst] = returns
     env.close()
     try:
         del env

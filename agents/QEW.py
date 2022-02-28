@@ -9,10 +9,10 @@ class QEW:
     Learn a mapping from state action pairs to max_a(Q(s',a)) + reward
     Similar to the implementation of DQN, but directly fits the closed form solution to the linear function approximator
     """
-    def __init__(self, num_features, actions):
+    def __init__(self, num_features, actions, regularisation_strength=0.1, exploration=.15):
         self.experience_window = 200
-        self.lam = 0.1  # regularisation strength
-        self.epsilon = 0.15  # exploration
+        self.lam = regularisation_strength
+        self.epsilon = exploration
         self.enough_data = 20  # choose actions at random until have enough data points
         self.num_features = num_features
         self.num_action_state_features = num_features * actions.n

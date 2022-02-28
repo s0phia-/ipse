@@ -1,4 +1,5 @@
 import time
+import statistics
 
 
 def evaluate(agent, env, sleep_time, episodes, max_episode_length):
@@ -42,3 +43,16 @@ def learn_and_evaluate(agent, env, sleep_time, episodes, max_episode_length):
                 all_returns.append([cumulative_reward])
                 break
     return all_returns
+
+
+def control_evaluation(agent, env, sleep_every_step, num_episodes, max_length_episode, evaluate_every_x_episodes,
+                       evaluate_iterations):
+    num_evaluations = num_episodes/evaluate_every_x_episodes
+    all_returns = []
+    for i in range(num_evaluations):
+        learn_and_evaluate(agent, env, sleep_every_step, num_episodes, max_length_episode)
+        if i % evaluate_every_x_episodes == 0:
+            returns = evaluate(agent, env, sleep_every_step, evaluate_iterations, max_length_episode)
+            all_returns.append(statistics.mean(returns))
+    return all_returns
+
