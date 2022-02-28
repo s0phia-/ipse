@@ -18,7 +18,7 @@ class QEW:
         self.num_action_state_features = num_features * actions.n
         self.D = create_diff_matrix(num_features=self.num_action_state_features)
         self.X = np.empty([0, self.num_action_state_features])
-        self.y = np.empty([0, 1])
+        self.y = np.empty([0])
         self.beta = np.empty(self.num_action_state_features)
         self.action_space = actions
 
@@ -49,7 +49,6 @@ class QEW:
         if self.X.shape[0] > self.experience_window:
             self.X = np.delete(self.X, 0, axis=0)
             self.y = np.delete(self.y, 0, axis=0)
-            print("yes")
         err_msg = "Shape of X and y do not match"
         assert self.X.shape[0] == self.y.shape[0], err_msg
         err_msg = "Too many data points"
