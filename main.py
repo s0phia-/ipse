@@ -1,41 +1,25 @@
-import time
 import matplotlib.pyplot as plt
-
+import statistics
+from dqn_style_run_files.evaluate import evaluate, learn_and_evaluate
 from envs.cartpole_rbf import CartPoleRBF
-from envs.pub_or_study import StudentDilemma
 from agents.QEW import QEW
 
 num_episodes = 500
 max_length_episode = 100
+sleep_every_step = 0
+evaluate_every_x_episodes = 10
+evaluate_iterations = 5
 
 
 if __name__ == '__main__':
-    sleep_every_step = 0.05  # 0
-
-    env = CartPoleRBF()
-
     all_returns = []
-
-    for _ in range(num_episodes):
-        env.reset()
-        env.render()
-        state = env.state_features
-        cumulative_reward = 0
-
-        for _ in range(max_length_episode):
-            time.sleep(sleep_every_step)
-            agent = QEW(num_features=env.num_features, actions=env.action_space)
-            action = agent.choose_action(state)  # env.action_space.sample()
-            _, reward, done, info = env.step(action)
-            cumulative_reward += reward
-            state_prime = info["state_features"]
-            agent.learn(state, action, reward, state_prime)
-            env.render()
-            state = state_prime
-            if done:
-                all_returns.append([cumulative_reward])
-                break
-
+    env = CartPoleRBF()
+    agent = QEW(num_features=env.num_features, actions=env.action_space)
+    for i in range(num_episodes/evaluate_every_x_episodes):
+        learn_and_evaluate(agent, env, sleep_every_step, evaluate_every_x_episodes, max_length_episode)
+        if i % evaluate_every_x_episodes == 0:
+            returns = evaluate(agent, env, sleep_every_step, evaluate_iterations, max_length_episode)
+            all_returns.append(statistics.mean(returns))
     env.close()
     try:
         del env
