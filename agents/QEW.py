@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from agents.stew.utils import create_diff_matrix
+from sklearn import linear_model
 
 
 class QEW:
@@ -9,8 +10,8 @@ class QEW:
     Learn a mapping from state action pairs to max_a(Q(s',a)) + reward
     Similar to the implementation of DQN, but directly fits the closed form solution to the linear function approximator
     """
-    def __init__(self, num_features, actions, regularisation_strength=0.1, exploration=.15):
-        self.experience_window = 200
+    def __init__(self, num_features, actions, regularisation_strength=0.1, exploration=.15, ew=True):
+        self.experience_window = 1000
         self.lam = regularisation_strength
         self.epsilon = exploration
         self.enough_data = 20  # choose actions at random until have enough data points
@@ -18,15 +19,24 @@ class QEW:
         self.num_action_state_features = num_features * actions.n
         self.D = create_diff_matrix(num_features=self.num_action_state_features)
         self.X = np.empty([0, self.num_action_state_features])
-        self.y = np.empty([0])
+        self.y = np.empty([0, 1])
         self.beta = np.empty(self.num_action_state_features)
         self.action_space = actions
+        self.ew = ew
 
     def fit_closed_form(self):
         """
         Fits a linear model regularised with equal weights
         """
         a = np.matmul(self.X.transpose(), self.X) + self.lam * np.matmul(self.D.transpose(), self.D)
+        b = np.matmul(self.X.transpose(), self.y)
+        self.beta = np.matmul(np.linalg.inv(a), b)
+
+    def fit_zero_reg(self):
+        """
+        Fits ridge regression
+        """
+        a = np.matmul(self.X.transpose(), self.X) + self.lam * np.identity(self.num_action_state_features)
         b = np.matmul(self.X.transpose(), self.y)
         self.beta = np.matmul(np.linalg.inv(a), b)
 
@@ -56,7 +66,10 @@ class QEW:
 
     def learn(self, state_features, action, reward, state_prime_features):
         self.append_data(state_features, action, reward, state_prime_features)
-        self.fit_closed_form()
+        if self.ew:
+            self.fit_closed_form()
+        else:
+            self.fit_zero_reg()
 
     def get_highest_q_action(self, state_features):
         """

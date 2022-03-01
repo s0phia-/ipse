@@ -50,10 +50,8 @@ def control_evaluation(agent, env, sleep_every_step, num_episodes, max_length_ep
                        evaluate_iterations):
     num_evaluations = int(round(num_episodes/evaluate_every_x_episodes))
     all_returns = []
-    for i in range(num_evaluations):
-        if i % evaluate_every_x_episodes == 0:
-            returns = evaluate(agent, env, sleep_every_step, evaluate_iterations, max_length_episode)
-            all_returns.append(statistics.mean(returns))
-        learn_and_evaluate(agent, env, sleep_every_step, num_episodes, max_length_episode)
+    for _ in range(num_evaluations):
+        returns = evaluate(agent, env, sleep_every_step, evaluate_iterations, max_length_episode)
+        all_returns.append(statistics.mean(returns))
+        learn_and_evaluate(agent, env, sleep_every_step, evaluate_every_x_episodes, max_length_episode)
     return all_returns
-
