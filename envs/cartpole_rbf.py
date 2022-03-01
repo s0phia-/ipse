@@ -38,7 +38,7 @@ class CartPoleRBF(CartPoleEnv):
         ###########################
         ###  Added additional reward for being close to vertical
         ###########################
-        reward += np.abs(state[2])/2
+        # reward += np.abs(state[2])/2
         return state, reward, done, info
 
     def get_sa_pairs(self):
