@@ -1,12 +1,13 @@
 import time
 import statistics
+import numpy as np
 
 
 def evaluate(agent, env, sleep_time, episodes, max_episode_length):
     all_returns = []
     agent_epsilon = agent.epsilon
     agent.epsilon = 0
-
+    current_weights = agent.beta
     for _ in range(episodes):
         env.reset()
         state = env.state_features
@@ -19,6 +20,7 @@ def evaluate(agent, env, sleep_time, episodes, max_episode_length):
             cumulative_reward += reward
             state_prime = info["state_features"]
             state = state_prime
+            np.testing.assert_array_equal(agent.beta, current_weights)
             if done or i == max_episode_length-1:
                 all_returns.append(cumulative_reward)
                 break
@@ -50,8 +52,9 @@ def control_evaluation(agent, env, sleep_every_step, num_episodes, max_length_ep
                        evaluate_iterations):
     num_evaluations = int(round(num_episodes/evaluate_every_x_episodes))
     all_returns = []
-    for _ in range(num_evaluations):
-        returns = evaluate(agent, env, sleep_every_step, evaluate_iterations, max_length_episode)
+    for i in range(num_evaluations):
+        returns = evaluate(agent=agent, env=env, sleep_time=sleep_every_step, episodes=evaluate_iterations,
+                           max_episode_length=max_length_episode)
         all_returns.append(statistics.mean(returns))
         learn_and_evaluate(agent, env, sleep_every_step, evaluate_every_x_episodes, max_length_episode)
     return all_returns
