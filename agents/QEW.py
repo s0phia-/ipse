@@ -1,7 +1,8 @@
 import numpy as np
 import random
 from agents.stew.utils import create_diff_matrix
-from sklearn import linear_model
+from utils import random_tiebreak_argmax
+import statistics
 
 
 class QEW:
@@ -10,7 +11,7 @@ class QEW:
     Learn a mapping from state action pairs to max_a(Q(s',a)) + reward
     Similar to the implementation of DQN, but directly fits the closed form solution to the linear function approximator
     """
-    def __init__(self, num_features, actions, regularisation_strength=0.1, exploration=.15, ew=True):
+    def __init__(self, num_features, actions, regularisation_strength=0.1, exploration=.15, model="stew"):
         self.experience_window = 1000
         self.lam = regularisation_strength
         self.epsilon = exploration
@@ -18,21 +19,30 @@ class QEW:
         self.num_features = num_features
         self.num_action_state_features = num_features * actions.n
         self.D = create_diff_matrix(num_features=self.num_action_state_features)
-        self.X = np.empty([0, self.num_action_state_features])
-        self.y = np.empty([0, 1])
-        self.beta = np.empty(self.num_action_state_features)
+        self.X = np.zeros([0, self.num_action_state_features])
+        self.y = np.zeros([0, 1])
+        self.beta = np.random.rand(self.num_action_state_features)
         self.action_space = actions
-        self.ew = ew
+        self.model = model
 
-    def fit_closed_form(self):
+    def fit_stew(self):
         """
-        Fits a linear model regularised with equal weights
+        Fits STEW
         """
         a = np.matmul(self.X.transpose(), self.X) + self.lam * np.matmul(self.D.transpose(), self.D)
         b = np.matmul(self.X.transpose(), self.y)
         self.beta = np.matmul(np.linalg.inv(a), b)
 
-    def fit_zero_reg(self):
+    def fit_ew(self):
+        """
+        fits pure equal weights
+        """
+        a = np.matmul(self.X.transpose(), self.X) + self.lam * np.matmul(self.D.transpose(), self.D)
+        b = np.matmul(self.X.transpose(), self.y)
+        mean_weights = statistics.mean(np.matmul(np.linalg.inv(a), b))
+        self.beta = np.ones(self.num_action_state_features)*mean_weights
+
+    def fit_ridge(self):
         """
         Fits ridge regression
         """
@@ -41,7 +51,7 @@ class QEW:
         self.beta = np.matmul(np.linalg.inv(a), b)
 
     def choose_action(self, state):
-        if random.uniform(0, 1) < self.epsilon or self.X.shape[0] < self.enough_data:
+        if random.uniform(0, 1) < self.epsilon:
             action = self.action_space.sample()
         else:
             action = self.get_highest_q_action(state)[0]
@@ -51,7 +61,7 @@ class QEW:
         """
         Add the latest observation to X and y
         """
-        est_return_s_prime = self.get_highest_q_action(state_prime_features)[1] + reward
+        est_return_s_prime = self.get_highest_q_action(state_prime_features)[1] + reward/100
         state_action_features = np.zeros([self.action_space.n, self.num_features])
         state_action_features[action] = state_features
         self.X = np.vstack([self.X, state_action_features.flatten()])
@@ -66,10 +76,14 @@ class QEW:
 
     def learn(self, state_features, action, reward, state_prime_features):
         self.append_data(state_features, action, reward, state_prime_features)
-        if self.ew:
-            self.fit_closed_form()
+        if self.model == "stew":
+            self.fit_stew()
+        elif self.model == "ew":
+            self.fit_ew()
+        elif self.model == "ridge":
+            self.fit_ridge()
         else:
-            self.fit_zero_reg()
+            raise ValueError('Please choose a valid model name {stew, ew, or ridge}.')
 
     def get_highest_q_action(self, state_features):
         """
@@ -82,5 +96,5 @@ class QEW:
             z[i] = state_features
             all_state_actions.append(z.flatten())
         all_state_action_q_values = [np.matmul(self.beta.transpose(), x) for x in all_state_actions]
-        argmax_action = np.argmax(all_state_action_q_values)
+        argmax_action = random_tiebreak_argmax(all_state_action_q_values)
         return argmax_action, all_state_action_q_values[argmax_action]
