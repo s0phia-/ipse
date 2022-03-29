@@ -15,7 +15,7 @@ evaluate_every_x_episodes = 5
 evaluate_iterations = 3
 regularisation_strengths = np.logspace(-2, 1.5, 50)
 function_approximators = ["stew", "ridge"]  # , "ew", "stew"]
-agents_to_compare = 5
+agents_to_compare = 30
 
 if __name__ == '__main__':
     all_returns = {}
