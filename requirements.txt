@@ -3,4 +3,3 @@ gym==0.21.0
 matplotlib==3.5.1
 scipy==1.8.0
 scikit-learn==1.0.2
-numba==0.55.1
