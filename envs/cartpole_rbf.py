@@ -4,7 +4,7 @@ import warnings
 
 
 class CartPoleRBF(CartPoleEnv):
-    def __init__(self, informative_rewards=False):
+    def __init__(self, informative_rewards=False, direct_features=False):
         super().__init__()
         # setup features based on Least-Squares Policy Iteration
         self.theta_rbf = [-np.pi / 4, 0, np.pi / 4]
@@ -13,24 +13,27 @@ class CartPoleRBF(CartPoleEnv):
         # self.omega_rbf = [-1, -0.5, 0, 0.5, 1]
         self.rbf_grid = np.array([np.tile(self.theta_rbf, len(self.omega_rbf)),
                                   np.repeat(self.omega_rbf, len(self.theta_rbf))])
-        self.state_features = np.zeros(int(len(self.theta_rbf) * len(self.omega_rbf)))
+        self.state_features = np.zeros(int(len(self.theta_rbf) * len(self.omega_rbf)+1))
         self.num_features = len(self.state_features)
         self.num_actions = self.action_space.n
         self.informative_rewards = informative_rewards
         if self.informative_rewards:
             warnings.warn("INFO: Using informative rewards. "
                           "Non-original formulation of Cartpole!")
+        if direct_features:
+            self.feature_directions = [1, -1, 1, -1, 1, 1, 1, -1, 1, -1]
+        else:
+            self.feature_directions = np.ones(self.num_features)
 
     def get_features(self):
         theta = self.state[2]
         omega = self.state[3]
-        # rbf = [np.exp(-np.linalg.norm([theta - self.theta_rbf[i], omega - self.omega_rbf[j]]) / 2)
-        #        for i in range(len(self.theta_rbf)) for j in range(len(self.omega_rbf))]
         s = np.array([[theta],
                       [omega]])
-        rbf = np.exp(-np.linalg.norm(s - self.rbf_grid, axis=0) / 2)
-        self.state_features = rbf
-        return rbf
+        rbf = np.append([1], np.exp(-(np.linalg.norm(s - self.rbf_grid, axis=0)**2) / 2))
+        directed_rbf = np.multiply(rbf, self.feature_directions)
+        self.state_features = directed_rbf
+        return directed_rbf
 
     def step(self, action):
         state, reward, done, info = super().step(action)
