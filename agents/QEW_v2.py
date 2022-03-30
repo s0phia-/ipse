@@ -21,7 +21,7 @@ class QEWv2(QEW):
         """
         Add the latest observation to X and y
         """
-        est_return_s_prime = self.get_highest_q_action(state_prime_features)[1] + reward*self.reward_scale
+        est_return_s_prime = self.get_highest_q_action(state_prime_features)[1] + (reward*self.reward_scale)
         self.X[action].append(state_features)
         self.y[action].append(est_return_s_prime)
         if len(self.X[action]) > self.experience_window:
@@ -41,10 +41,12 @@ class QEWv2(QEW):
         elif self.model == "ridge":
             self.beta[action] = fit_ridge(self.X[action], self.y[action], self.lam)
         elif self.model == "lin_reg":
-            self.beta[action] = fit_lin_reg(self.X[action], self.y[action])
+            if len(self.y[action]) < 100:
+                pass
+            else:
+                self.beta[action] = fit_lin_reg(self.X[action], self.y[action])
         else:
             raise ValueError('Please choose a valid model name {stew, ew, ridge or lin_reg}.')
-        print(self.beta)
 
     def get_highest_q_action(self, state_features):
         """
