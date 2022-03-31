@@ -16,7 +16,7 @@ if __name__ == '__main__':
     pool = mp.Pool(mp.cpu_count())
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_agents', type=int, default=30)
+    parser.add_argument('--num_agents', type=int, default=25)
     parser.add_argument('--eval_every_x_episodes', type=int, default=3)
     parser.add_argument('--eval_iterations', type=int, default=3)
     parser.add_argument('--sleep', type=int, default=0)
