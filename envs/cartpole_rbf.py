@@ -9,8 +9,6 @@ class CartPoleRBF(CartPoleEnv):
         # setup features based on Least-Squares Policy Iteration
         self.theta_rbf = [-np.pi / 4, 0, np.pi / 4]
         self.omega_rbf = [-1, 0, 1]
-        # self.theta_rbf = [-np.pi / 4, -np.pi / 8, 0, np.pi / 8, np.pi / 4]
-        # self.omega_rbf = [-1, -0.5, 0, 0.5, 1]
         self.rbf_grid = np.array([np.tile(self.theta_rbf, len(self.omega_rbf)),
                                   np.repeat(self.omega_rbf, len(self.theta_rbf))])
         self.state_features = np.zeros(int(len(self.theta_rbf) * len(self.omega_rbf)+1))
@@ -21,7 +19,7 @@ class CartPoleRBF(CartPoleEnv):
             warnings.warn("INFO: Using informative rewards. "
                           "Non-original formulation of Cartpole!")
         if direct_features:
-            self.feature_directions = [1, -1, 1, -1, 1, 1, 1, -1, 1, -1]
+            self.feature_directions = [1, -1, 1, 1, 1, 1, 1, 1, 1, -1]
         else:
             self.feature_directions = np.ones(self.num_features)
 

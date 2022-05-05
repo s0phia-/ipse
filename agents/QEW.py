@@ -1,38 +1,36 @@
 import numpy as np
 import random
+import time
 from agents.stew.utils import create_diff_matrix
 from utils import random_tiebreak_argmax, fit_lin_reg, fit_ew, fit_ridge, fit_stew
 
 
-class QEW:
+class QAgent:
     """
     Q-learning-derived algorithm regularised with equal weights
     Learn a mapping from state action pairs to max_a(Q(s',a)) + reward
     Similar to the implementation of DQN, but directly fits the closed form solution to the linear function approximator
     """
-    def __init__(self, num_features, actions, regularisation_strength=0.1, exploration=.15, model="stew"):
-        self.experience_window = 1000
-        self.lam = regularisation_strength
+    def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15):
+        self.experience_window = 10000
         self.epsilon = exploration
         self.num_features = num_features
         self.num_actions = actions.n
-        self.num_action_state_features = num_features * self.num_actions
-        self.D = create_diff_matrix(num_features=self.num_action_state_features)
-        self.X = np.zeros([0, self.num_action_state_features])
+        self.X = np.zeros([0, self.num_features * self.num_actions])
         self.y = np.zeros([0, 1])
-        self.beta = np.random.uniform(low=0, high=1, size=self.num_action_state_features)
+        self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions * self.num_features])
         self.action_space = actions
-        self.model = model
         self.reward_scale = 1/100
+        self.lam = regularisation_strength
 
-    def choose_action(self, state):
+    def epsilon_greedy(self, state):
         if random.uniform(0, 1) < self.epsilon:
             action = self.action_space.sample()
         else:
             action = self.get_highest_q_action(state)[0]
         return action
 
-    def append_data(self, state_features, action,  reward, state_prime_features):
+    def store_data(self, state_features, action, reward, state_prime_features):
         """
         Add the latest observation to X and y
         """
@@ -44,34 +42,65 @@ class QEW:
         if self.X.shape[0] > self.experience_window:
             self.X = np.delete(self.X, 0, axis=0)
             self.y = np.delete(self.y, 0, axis=0)
-        err_msg = "Shape of X and y do not match"
-        assert self.X.shape[0] == self.y.shape[0], err_msg
-        err_msg = "Too many data points"
-        assert self.X.shape[0] <= self.experience_window, err_msg
-
-    def learn(self, state_features, action, reward, state_prime_features):
-        self.append_data(state_features, action, reward, state_prime_features)
-        if self.model == "stew":
-            self.beta = fit_stew(self.X, self.y, self.D, self.lam)
-        elif self.model == "ew":
-            self.beta = fit_ew(self.X)
-        elif self.model == "ridge":
-            self.beta = fit_ridge(self.X, self.y, self.lam)
-        elif self.model == "lin_reg":
-            self.beta = fit_lin_reg(self.X, self.y)
-        else:
-            raise ValueError('Please choose a valid model name {stew, ew, or ridge}.')
 
     def get_highest_q_action(self, state_features):
         """
         Solves argmax_a(Q(s,a)) for given s
         :return: the action with the highest expected return in the given state, and the corresponding expected return
         """
+        weights = self.beta.reshape([self.num_actions, self.num_features])
+        q_values = np.matmul(weights, state_features)
+
         all_state_actions = []
         for i in range(0, self.num_actions):
             z = np.zeros([self.num_actions, self.num_features])
             z[i] = state_features
             all_state_actions.append(z.flatten())
         all_state_action_q_values = [np.matmul(self.beta.transpose(), x) for x in all_state_actions]
-        argmax_action = random_tiebreak_argmax(all_state_action_q_values)
-        return argmax_action, all_state_action_q_values[argmax_action]
+
+        assert all_state_action_q_values == q_values
+        argmax_action = random_tiebreak_argmax(q_values)
+        return argmax_action, q_values[argmax_action]
+
+    def run(self, env, sleep_time, episodes, max_episode_length):
+        for i in range(episodes):
+            env.reset()
+            state = env.state_features
+            for _ in range(max_episode_length):
+                time.sleep(sleep_time)
+                action = self.epsilon_greedy(state)  # env.action_space.sample()
+                _, reward, done, info = env.step(action)
+                state_prime = info["state_features"]
+                self.store_data(state, action, reward, state_prime)
+                self.learn(state, action, reward, state_prime)
+                state = state_prime
+                if done or i == max_episode_length - 1:
+                    break
+
+
+###############################################################
+# create agents as extensions of Q Agent - for easier looping #
+###############################################################
+
+class QStewAgentType1(QAgent):
+    def __init__(self, num_features, actions, exploration, regularisation_strength):
+        super().__init__(num_features, actions, exploration)
+        self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
+
+    def learn(self):
+        self.beta = fit_stew(self.X, self.y, self.D, self.lam)
+
+
+class QRidgeAgentType1(QAgent):
+    def learn(self):
+        self.beta = fit_ridge(self.X, self.y, self.lam)
+
+
+class QEwAgentType1(QAgent):
+    def learn(self):
+        self.beta = fit_ew(self.X)
+
+
+class QLinRegType1(QAgent):
+    def learn(self):
+        self.beta = fit_lin_reg(self.X, self.y)

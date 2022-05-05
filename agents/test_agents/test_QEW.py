@@ -69,7 +69,7 @@ class TestQEW(unittest.TestCase):
         state_prime_features = [0, 0, 0, 0, 0]
         agent.X = np.zeros([100, 15])
         agent.y = np.zeros([100, 1])
-        agent.append_data(state_features, action, reward, state_prime_features)
+        agent.store_data(state_features, action, reward, state_prime_features)
         expected_x = np.vstack([np.zeros([99, 15]), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .1, .2, .3, .4, .5]])
         expected_y = np.zeros([100])
         np.testing.assert_array_equal(agent.X, expected_x)
