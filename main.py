@@ -13,7 +13,7 @@ if __name__ == '__main__':
     if not os.path.exists(results_path):
         os.makedirs(results_path)
 
-    pool = mp.Pool(mp.cpu_count())
+    pool = mp.Pool(1)#mp.cpu_count())
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_agents', type=int, default=3)
@@ -23,7 +23,9 @@ if __name__ == '__main__':
     parser.add_argument('--max_ep_len', type=int, default=200)
     parser.add_argument('--episodes', type=int, default=150)
     parser.add_argument('--reg_strengths', type=list, default=np.logspace(-2, 4, 40))  # 2500, 30ew
-    parser.add_argument('--agents', type=list, default=["ridge"])  # "ridge", "ew", "lin_reg"])
+    parser.add_argument('--agents', type=list, default=["RidgeAgent", "PureEwAgent", "StewAgent", "LinRegAgent",
+                                                        "QStewAgentType1", "QRidgeAgentType1", "QEwAgentType1",
+                                                        "QLinRegType1", "LspiAgent", "LspiAgentEw"])
     parser.add_argument('--direct_features', type=list, default=[False])
     args = parser.parse_args()
 

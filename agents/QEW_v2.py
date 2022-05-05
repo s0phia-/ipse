@@ -11,7 +11,7 @@ class QEWv2(QAgent):
     to similar values
     """
     def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15):
-        super().__init__(num_features, actions, exploration)
+        super().__init__(num_features, actions, regularisation_strength, exploration)
         self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions, self.num_features])  # np.zeros([self.num_actions, self.num_features])
         self.X = defaultdict(lambda: [])
         self.y = defaultdict(lambda: [])
@@ -27,10 +27,6 @@ class QEWv2(QAgent):
         if len(self.X[action]) > self.experience_window:
             self.X[action].pop(0)
             self.y[action].pop(0)
-        err_msg = "Shape of X and y do not match"
-        assert len(self.X[action]) == len(self.y[action]), err_msg
-        err_msg = "Too many data points"
-        assert len(self.X[action]) <= self.experience_window, err_msg
 
     def get_highest_q_action(self, state_features):
         """

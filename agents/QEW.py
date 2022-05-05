@@ -62,7 +62,7 @@ class QAgent:
         argmax_action = random_tiebreak_argmax(q_values)
         return argmax_action, q_values[argmax_action]
 
-    def run(self, env, sleep_time, episodes, max_episode_length):
+    def run(self, env, episodes, max_episode_length=200, sleep_time=0, *args):
         for i in range(episodes):
             env.reset()
             state = env.state_features
@@ -83,8 +83,8 @@ class QAgent:
 ###############################################################
 
 class QStewAgentType1(QAgent):
-    def __init__(self, num_features, actions, exploration, regularisation_strength):
-        super().__init__(num_features, actions, exploration)
+    def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
+        super().__init__(num_features, actions, regularisation_strength, exploration)
         self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
 
     def learn(self):

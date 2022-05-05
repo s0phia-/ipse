@@ -56,7 +56,7 @@ class LstdqEw(Lstdq):
 
 
 class LspiAgent:
-    def __init__(self, num_features, actions, regularisation_strength, model, max_samples=10**5, source_of_samples=[]):
+    def __init__(self, num_features, actions, regularisation_strength, max_samples=10**5, source_of_samples=[]):
         self.source_of_samples = source_of_samples
         self.max_samples = max_samples
         self.num_features = num_features
@@ -65,10 +65,7 @@ class LspiAgent:
         self.policy = np.zeros([self.num_features*self.num_actions])
         self.epsilon = .15
         self.action_space = actions
-        if model == "ew":
-            self.model = LstdqEw  # equal weights regularised LSTDQ
-        else:
-            self.model = Lstdq  # unregularised LSTDQ
+        self.model = Lstdq
 
     def epsilon_greedy(self, state):
         if random.uniform(0, 1) < self.epsilon:
@@ -106,6 +103,12 @@ class LspiAgent:
         if len(self.source_of_samples) >= self.max_samples:  # if too many samples, only keep last N
             self.source_of_samples = self.source_of_samples[-self.max_samples:]
 
-    def run(self, episodes, env, max_episode_length=150, sleep_time=0, stopping_criteria=.5):
+    def run(self, episodes, env, max_episode_length=200, sleep_time=0, stopping_criteria=.5):
         self.collect_experience(episodes, env, max_episode_length, sleep_time)
         self.learn(stopping_criteria)
+
+
+class LspiAgentEw(LspiAgent):
+    def __init__(self, num_features, actions, regularisation_strength, max_samples=10**5, source_of_samples=[]):
+        super().__init__(num_features, actions, regularisation_strength, max_samples, source_of_samples)
+        self.model = LstdqEw
