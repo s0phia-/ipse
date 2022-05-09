@@ -6,8 +6,7 @@ from tensorflow.keras.metrics import mean_squared_error
 from agents.stew.utils import create_diff_matrix
 import numpy as np
 import gym
-import itertools
-import collections
+from agents.EwRegularizer import KerasEWRegularizer
 
 
 class DQNAgent:
@@ -34,9 +33,10 @@ class DQNAgent:
         # The first layer has the same size as a state size
         # The last layer has the size of actions space
         self.model = Sequential([
-            Dense(units=10, input_dim=state_size, activation='relu',  kernel_regularizer=EWRegularizer(self.reg_strength)),
-            Dense(units=6, activation='relu',  kernel_regularizer=EWRegularizer(self.reg_strength)),
-            Dense(units=action_size, activation='linear',  kernel_regularizer=EWRegularizer(self.reg_strength))
+            Dense(units=10, input_dim=state_size, activation='relu',
+                  kernel_regularizer=KerasEWRegularizer(self.reg_strength)),
+            Dense(units=6, activation='relu',  kernel_regularizer=KerasEWRegularizer(self.reg_strength)),
+            Dense(units=action_size, activation='linear',  kernel_regularizer=KerasEWRegularizer(self.reg_strength))
         ])
         self.model.compile(loss="mse",
                            optimizer=Adam(learning_rate=self.lr))
@@ -90,35 +90,6 @@ class DQNAgent:
             q_current_state[0][experience["action"]] = q_target
             # train the model
             self.model.fit(experience["current_state"], q_current_state, verbose=0)
-
-
-class BetterDefaultDict(dict):
-
-    def __missing__(self, key):
-        return self.pairwise_diff_matrix(key)
-
-    @staticmethod
-    def pairwise_diff_matrix(n):
-        x = np.concatenate((np.zeros([n - 2]), [1, 1]))
-        x = [list(i) for i in set(itertools.permutations(x))]
-        return np.float32(x)
-
-
-@tf.keras.utils.register_keras_serializable(package='Custom', name='ew')
-class EWRegularizer(tf.keras.regularizers.Regularizer):
-
-    def __init__(self, reg_strength=1.5):  # pylint: disable=redefined-outer-name
-        self.reg_strength = reg_strength
-        self.d = BetterDefaultDict()
-
-    def __call__(self, x):
-        d = self.d[x.shape[1]]
-        y = tf.linalg.matmul(d, x, transpose_b=True)
-        y = tf.norm(y, 2)**2
-        return self.reg_strength * y
-
-    def get_config(self):
-        return {'reg_strength': float(self.reg_strength)}
 
 
 # We create our gym environment
