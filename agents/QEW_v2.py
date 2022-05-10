@@ -44,25 +44,21 @@ class QEWv2(QAgent):
 
 class PureEwAgent(QEWv2):
     def learn(self, state_features, action, reward, state_prime_features):
-        self.store_data(state_features, action, reward, state_prime_features)
         self.beta[action] = fit_ew(self.X[action])
 
 
 class StewAgent(QEWv2):
     def learn(self, state_features, action, reward, state_prime_features):
-        self.store_data(state_features, action, reward, state_prime_features)
         self.beta[action] = fit_stew(self.X[action], self.y[action], self.D, self.lam)
 
 
 class RidgeAgent(QEWv2):
     def learn(self, state_features, action, reward, state_prime_features):
-        self.store_data(state_features, action, reward, state_prime_features)
         self.beta[action] = fit_ridge(self.X[action], self.y[action], self.lam)
 
 
 class LinRegAgent(QEWv2):
     def learn(self, state_features, action, reward, state_prime_features):
-        self.store_data(state_features, action, reward, state_prime_features)
         if len(self.y[action]) < 1000:
             pass
         else:
