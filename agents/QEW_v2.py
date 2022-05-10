@@ -10,7 +10,7 @@ class QEWv2(QAgent):
     Similar to QEW but state action vector are separated out. This will prevent regularisation from pushing actions
     to similar values
     """
-    def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15):
+    def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15, *args):
         super().__init__(num_features, actions, regularisation_strength, exploration)
         self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions, self.num_features])  # np.zeros([self.num_actions, self.num_features])
         self.X = defaultdict(lambda: [])
