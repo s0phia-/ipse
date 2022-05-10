@@ -14,8 +14,8 @@ class Lstdq:
         self.num_actions = num_actions
         self.lam = regularisation_strength
         self.gamma = 0.9  # discount factor
-        self.matrix_A = np.zeros([self.num_features, self.num_features])
-        self.vector_b = np.zeros(self.num_features)
+        self.matrix_A = np.zeros([self.num_features*self.num_actions, self.num_features*self.num_actions])
+        self.vector_b = np.zeros([self.num_features * self.num_actions])
         self.samples = source_of_samples  # called D in LSPI paper
         self.policy_matrix = policy.reshape([self.num_actions, num_features])
 
@@ -34,12 +34,12 @@ class Lstdq:
             state_action = self.apply_bf(state, action)
             state_action_prime = self.apply_bf(state_prime, self.greedy_policy(state_prime))
             x = state_action - self.gamma * state_action_prime
-            self.matrix_A += np.matmul(state_action, np.transpose(x))
+            self.matrix_A += np.matmul(state_action.reshape([state_action.shape[0], 1]), x.reshape([1, x.shape[0]]))
             self.vector_b += state_action * reward
 
     def fit(self):
         self.find_a_and_b()
-        return np.matmul(np.invert(self.matrix_A), self.vector_b)
+        return np.matmul(np.linalg.inv(self.matrix_A), self.vector_b)
 
 
 class LstdqEw(Lstdq):
@@ -48,15 +48,15 @@ class LstdqEw(Lstdq):
     """
     def __init__(self, num_features, num_actions, policy, source_of_samples, regularisation_strength):
         super().__init__(num_features, num_actions, policy, source_of_samples, regularisation_strength)
-        self.matrix_DtD = create_diff_matrix(num_features)  # ew regularisation matrix DtD
+        self.matrix_DtD = create_diff_matrix(num_features*num_actions)  # ew regularisation matrix DtD
 
     def fit(self):
         self.find_a_and_b()
-        return np.matmul(np.invert(self.matrix_A + self.lam*self.matrix_DtD), self.vector_b)
+        return np.matmul(np.linalg.inv(self.matrix_A + self.lam*self.matrix_DtD), self.vector_b)
 
 
 class LspiAgent:
-    def __init__(self, num_features, actions, regularisation_strength, max_samples=10**5, source_of_samples=[]):
+    def __init__(self, num_features, actions, regularisation_strength, max_samples=10**6, source_of_samples=[]):
         self.source_of_samples = source_of_samples
         self.max_samples = max_samples
         self.num_features = num_features
@@ -68,6 +68,7 @@ class LspiAgent:
         self.model = Lstdq
 
     def epsilon_greedy(self, state):
+        state = np.tile(state, self.num_actions)
         if random.uniform(0, 1) < self.epsilon:
             action = self.action_space.sample()
         else:
@@ -75,14 +76,22 @@ class LspiAgent:
             action = random_tiebreak_argmax(q_values)
         return action
 
-    def learn(self, stopping_criteria):
+    def learn(self, stopping_criteria, max_out=100000):
         diff = stopping_criteria + 1
-        while diff > stopping_criteria:
-            w_old = self.policy
-            agent = self.model(self.num_features, self.num_actions, w_old, self.source_of_samples, self.reg_strength)
-            w_new = agent.fit()
-            self.policy = w_new
-            diff = np.linalg.norm(w_old-w_new)
+        i = 1
+        for i in range(max_out):
+            if diff > stopping_criteria:
+                w_old = self.policy
+                agent = self.model(self.num_features, self.num_actions, w_old, self.source_of_samples,
+                                   self.reg_strength)
+                w_new = agent.fit()
+                self.policy = w_new
+                diff = np.linalg.norm(w_old-w_new)
+                i += 1
+            else:
+                print("success!")
+                print(diff)
+                break
         return w_new
 
     def collect_experience(self, episodes, env, max_episode_length, sleep_time):
@@ -97,15 +106,16 @@ class LspiAgent:
                 state_prime = info["state_features"]
                 new_samples.append([state, action, reward, state_prime])
                 state = state_prime
-                if done or i == max_episode_length - 1 or len(new_samples) >= self.max_samples:
+                if done or len(new_samples) >= self.max_samples:
                     break
-        self.source_of_samples.append(new_samples)
+        self.source_of_samples += new_samples
         if len(self.source_of_samples) >= self.max_samples:  # if too many samples, only keep last N
             self.source_of_samples = self.source_of_samples[-self.max_samples:]
 
-    def run(self, episodes, env, max_episode_length=200, sleep_time=0, stopping_criteria=.5):
-        self.collect_experience(episodes, env, max_episode_length, sleep_time)
-        self.learn(stopping_criteria)
+    def run(self, episodes, env, stopping_criteria, max_episode_length=200, sleep_time=0):
+        self.collect_experience(episodes=episodes, env=env, max_episode_length=max_episode_length,
+                                sleep_time=sleep_time)
+        self.learn(stopping_criteria=stopping_criteria)
 
 
 class LspiAgentEw(LspiAgent):
