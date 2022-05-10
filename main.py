@@ -41,8 +41,8 @@ if __name__ == '__main__':
                    [[agent_i, 3, 3, 0, 200, 150, 2, "QRidgeAgentType1", False, results_path] for agent_i in range(30)] +\
                    [[agent_i, 3, 3, 0, 200, 150, 1, "QEwAgentType1", False, results_path] for agent_i in range(30)] +\
                    [[agent_i, 3, 3, 0, 200, 150, 1, "QLinRegType1", False, results_path] for agent_i in range(30)] +\
+                   [[agent_i, 3, 3, 0, 200, 150, 4.85, "LspiAgentEw", False, results_path] for agent_i in range(30)] +\
                    [[agent_i, 3, 3, 0, 200, 150, 1, "LspiAgent", False, results_path] for agent_i in range(30)]
 
-    # [[agent_i, 3, 3, 0, 200, 150, 1000, "LspiAgentEw", False, results_path] for agent_i in range(30)] +\
 
     pool.starmap(full_run, all_run_args)
