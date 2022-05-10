@@ -90,8 +90,6 @@ class LspiAgent:
                 diff = np.linalg.norm(w_old-w_new)
                 i += 1
             else:
-                print("success!")
-                print(diff)
                 break
         return w_new
 
