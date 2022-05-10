@@ -63,7 +63,7 @@ class QAgent:
                 _, reward, done, info = env.step(action)
                 state_prime = info["state_features"]
                 self.store_data(state, action, reward, state_prime)
-                self.learn()
+                self.learn(state, action, reward, state_prime)
                 state = state_prime
                 if done or i == max_episode_length - 1:
                     break
@@ -78,20 +78,20 @@ class QStewAgentType1(QAgent):
         super().__init__(num_features, actions, regularisation_strength, exploration)
         self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
 
-    def learn(self):
+    def learn(self, state, action, reward, state_prime):
         self.beta = fit_stew(self.X, self.y, self.D, self.lam)
 
 
 class QRidgeAgentType1(QAgent):
-    def learn(self):
+    def learn(self, state, action, reward, state_prime):
         self.beta = fit_ridge(self.X, self.y, self.lam)
 
 
 class QEwAgentType1(QAgent):
-    def learn(self):
+    def learn(self, state, action, reward, state_prime):
         self.beta = fit_ew(self.X)
 
 
 class QLinRegType1(QAgent):
-    def learn(self):
+    def learn(self, state, action, reward, state_prime):
         self.beta = fit_lin_reg(self.X, self.y)
