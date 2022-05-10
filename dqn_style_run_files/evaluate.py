@@ -32,5 +32,6 @@ def control_evaluation(agent, env, sleep_time, num_episodes, max_episode_length,
         returns = evaluate(agent=agent, env=env, sleep_time=sleep_time, episodes=evaluate_iterations,
                            max_episode_length=max_episode_length)
         all_returns.append(statistics.mean(returns))
-        agent.run(env, num_episodes, max_episode_length, sleep_time, stopping_criteria)
+        agent.run(env=env, episodes=evaluate_every_x_episodes, max_episode_length=max_episode_length,
+                  sleep_time=sleep_time, stopping_criteria=stopping_criteria)
     return all_returns
