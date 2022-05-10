@@ -2,7 +2,7 @@ from analysis.gather_process_data import get_data, process_data, find_best_reg_c
 from analysis.plot import plot_gg, plot_coef_return
 
 eval_every_x_episodes = 3
-folder_path = '../results/ridge4'
+folder_path = '../results/hello'
 
 all_returns = get_data(folder_path, eval_every_x_episodes)
 all_returns = process_data(all_returns)
