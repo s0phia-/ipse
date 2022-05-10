@@ -50,15 +50,6 @@ class QAgent:
         """
         weights = self.beta.reshape([self.num_actions, self.num_features])
         q_values = np.matmul(weights, state_features)
-
-        all_state_actions = []
-        for i in range(0, self.num_actions):
-            z = np.zeros([self.num_actions, self.num_features])
-            z[i] = state_features
-            all_state_actions.append(z.flatten())
-        all_state_action_q_values = [np.matmul(self.beta.transpose(), x) for x in all_state_actions]
-
-        assert all_state_action_q_values == q_values
         argmax_action = random_tiebreak_argmax(q_values)
         return argmax_action, q_values[argmax_action]
 
@@ -72,7 +63,7 @@ class QAgent:
                 _, reward, done, info = env.step(action)
                 state_prime = info["state_features"]
                 self.store_data(state, action, reward, state_prime)
-                self.learn(state, action, reward, state_prime)
+                self.learn()
                 state = state_prime
                 if done or i == max_episode_length - 1:
                     break
