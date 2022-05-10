@@ -3,7 +3,7 @@ import numpy as np
 import itertools
 
 
-class BetterDefaultDict(dict):
+class EwDefaultDict(dict):
 
     def __missing__(self, key):
         return self.pairwise_diff_matrix(key)
@@ -20,10 +20,10 @@ class KerasEWRegularizer(tf.keras.regularizers.Regularizer):
 
     def __init__(self, reg_strength=1.5):  # pylint: disable=redefined-outer-name
         self.reg_strength = reg_strength
-        self.d = BetterDefaultDict()
+        self.d = EwDefaultDict()
 
     def __call__(self, x):
-        d = self.d[x.shape[1]]
+        d = self.d[x.shape[1]]  # think this should be 0, and drop the below transpose
         y = tf.linalg.matmul(d, x, transpose_b=True)
         y = tf.norm(y, 2)**2
         return self.reg_strength * y
