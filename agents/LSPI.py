@@ -13,11 +13,11 @@ class Lstdq:
         self.num_features = num_features
         self.num_actions = num_actions
         self.lam = regularisation_strength
-        self.gamma = 0.9  # discount factor
+        self.gamma = 0.99  # discount factor
         self.matrix_A = np.zeros([self.num_features*self.num_actions, self.num_features*self.num_actions])
         self.vector_b = np.zeros([self.num_features * self.num_actions])
         self.samples = source_of_samples  # called D in LSPI paper
-        self.policy_matrix = policy.reshape([self.num_actions, num_features])
+        self.policy_matrix = policy
 
     def apply_bf(self, state, action):
         sa_bf = np.zeros([self.num_actions, self.num_features])
@@ -39,7 +39,8 @@ class Lstdq:
 
     def fit(self):
         self.find_a_and_b()
-        return np.matmul(np.linalg.inv(self.matrix_A), self.vector_b)
+        policy = np.matmul(np.linalg.inv(self.matrix_A), self.vector_b)
+        return policy.reshape([self.num_actions, self.num_features])
 
 
 class LstdqEw(Lstdq):
@@ -52,7 +53,8 @@ class LstdqEw(Lstdq):
 
     def fit(self):
         self.find_a_and_b()
-        return np.matmul(np.linalg.inv(self.matrix_A + self.lam*self.matrix_DtD), self.vector_b)
+        policy = np.matmul(np.linalg.inv(self.matrix_A + self.lam*self.matrix_DtD), self.vector_b)
+        return policy.reshape([self.num_actions, self.num_features])
 
 
 class LspiAgent:
@@ -62,13 +64,12 @@ class LspiAgent:
         self.num_features = num_features
         self.num_actions = actions.n
         self.reg_strength = regularisation_strength
-        self.policy = np.zeros([self.num_features*self.num_actions])
+        self.policy = np.zeros([self.num_actions, self.num_features])
         self.epsilon = .15
         self.action_space = actions
         self.model = Lstdq
 
     def epsilon_greedy(self, state):
-        state = np.tile(state, self.num_actions)
         if random.uniform(0, 1) < self.epsilon:
             action = self.action_space.sample()
         else:
