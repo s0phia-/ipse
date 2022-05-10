@@ -13,7 +13,7 @@ if __name__ == '__main__':
     if not os.path.exists(results_path):
         os.makedirs(results_path)
 
-    pool = mp.Pool(mp.cpu_count())
+    pool = mp.Pool(40) #mp.cpu_count())
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_agents', type=int, default=3)
@@ -33,9 +33,15 @@ if __name__ == '__main__':
                     for reg_coef in args.reg_strengths
                     for agent in args.agents
                     for df in args.direct_features]
-    # all_run_args = [[agent_i, 3, 3, 0, 200, 150, 4.6, "StewAgent", False, results_path] for agent_i in range(30)] + \
-    #                [[agent_i, 3, 3, 0, 200, 150, 460, "RidgeAgent", False, results_path] for agent_i in range(30)] + \
-    #                [[agent_i, 3, 3, 0, 200, 150, 1, "PureEwAgent", False, results_path] for agent_i in range(30)] + \
-    #                [[agent_i, 3, 3, 0, 200, 150, 1, "LinRegAgent", False, results_path] for agent_i in range(30)]
+    all_run_args = [[agent_i, 3, 3, 0, 200, 150, 4.6, "StewAgent", False, results_path] for agent_i in range(30)] + \
+                   [[agent_i, 3, 3, 0, 200, 150, .35, "RidgeAgent", False, results_path] for agent_i in range(30)] + \
+                   [[agent_i, 3, 3, 0, 200, 150, 1, "PureEwAgent", False, results_path] for agent_i in range(30)] + \
+                   [[agent_i, 3, 3, 0, 200, 150, 1, "LinRegAgent", False, results_path] for agent_i in range(30)] +\
+                   [[agent_i, 3, 3, 0, 200, 150, 2, "QStewAgentType1", False, results_path] for agent_i in range(30)] +\
+                   [[agent_i, 3, 3, 0, 200, 150, 2, "QRidgeAgentType1", False, results_path] for agent_i in range(30)] +\
+                   [[agent_i, 3, 3, 0, 200, 150, 1, "QEwAgentType1", False, results_path] for agent_i in range(30)] +\
+                   [[agent_i, 3, 3, 0, 200, 150, 1, "QLinRegType1", False, results_path] for agent_i in range(30)] +\
+                  # [[agent_i, 3, 3, 0, 200, 150, 1000, "LspiAgentEw", False, results_path] for agent_i in range(30)] +\
+                   [[agent_i, 3, 3, 0, 200, 150, 1, "LspiAgent", False, results_path] for agent_i in range(30)]
 
     pool.starmap(full_run, all_run_args)
