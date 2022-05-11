@@ -1,11 +1,11 @@
 import numpy as np
 from collections import defaultdict
-from agents.QEW import QAgent
+from agents.QEW_Together import QTogetherAgent
 from agents.stew.utils import create_diff_matrix
 from utils import random_tiebreak_argmax, fit_lin_reg, fit_ew, fit_ridge, fit_stew
 
 
-class QEWv2(QAgent):
+class QSeparatedAgent(QTogetherAgent):
     """
     Similar to QEW but state action vector are separated out. This will prevent regularisation from pushing actions
     to similar values
@@ -37,29 +37,70 @@ class QEWv2(QAgent):
         argmax_action = random_tiebreak_argmax(all_state_action_q_values)
         return argmax_action, all_state_action_q_values[argmax_action]
 
+    def get_td_error(self, state, action, state_prime, reward):
+        """
+        used for incremental updates to weights vector
+        """
+        a = reward + self.lr * self.get_highest_q_action(state_prime)[1]
+        b = np.matmul(state, self.beta[action])
+        return (a-b) * state
+
 
 ####################################################################
 # create agents as extensions of QEWv2 - allows for easier looping #
 ####################################################################
 
-class PureEwAgent(QEWv2):
+############################
+# Agents that fit directly #
+############################
+
+class QEwSeparatedAgent(QSeparatedAgent):
     def learn(self, state_features, action, reward, state_prime_features):
         self.beta[action] = fit_ew(self.X[action])
 
 
-class StewAgent(QEWv2):
+class QStewSeparatedAgent(QSeparatedAgent):
     def learn(self, state_features, action, reward, state_prime_features):
         self.beta[action] = fit_stew(self.X[action], self.y[action], self.D, self.lam)
 
 
-class RidgeAgent(QEWv2):
+class QRidgeSeparatedAgent(QSeparatedAgent):
     def learn(self, state_features, action, reward, state_prime_features):
         self.beta[action] = fit_ridge(self.X[action], self.y[action], self.lam)
 
 
-class LinRegAgent(QEWv2):
+class QLinRegSeparatedAgent(QSeparatedAgent):
     def learn(self, state_features, action, reward, state_prime_features):
         if len(self.y[action]) < 1000:
             pass
         else:
             self.beta[action] = fit_lin_reg(self.X[action], self.y[action])
+
+
+###################################
+# Agents that learn incrementally #
+###################################
+
+class QStewSepInc(QTogetherAgent):
+    def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
+        super().__init__(num_features, actions, regularisation_strength, exploration)
+        self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
+
+    def learn(self, state, action, reward, state_prime):
+        delta = self.get_td_error(state, action, state_prime, reward)
+        reg = self.lam * np.matmul(self.D, self.beta[action])
+        self.beta[action] += delta + reg
+
+
+class QRidgeSepInc(QTogetherAgent):
+    def learn(self, state, action, reward, state_prime):
+        delta = self.get_td_error(state, action, state_prime, reward)
+        reg = self.lam * np.matmul(self.matrix_id, self.beta[action])
+        self.beta[action] += delta + reg
+
+
+class QLinRegSepInc(QTogetherAgent):
+    def learn(self, state, action, reward, state_prime):
+        delta = self.get_td_error(state, action, state_prime, reward)
+        self.beta[action] += delta
+
