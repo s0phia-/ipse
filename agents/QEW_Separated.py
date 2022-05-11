@@ -54,10 +54,6 @@ class QSeparatedAgent(QTogetherAgent):
 # Agents that fit directly #
 ############################
 
-class QEwSeparatedAgent(QSeparatedAgent):
-    def learn(self, state_features, action, reward, state_prime_features):
-        self.beta[action] = fit_ew(self.X[action])
-
 
 class QStewSeparatedAgent(QSeparatedAgent):
     def learn(self, state_features, action, reward, state_prime_features):

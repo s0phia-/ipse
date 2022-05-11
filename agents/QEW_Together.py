@@ -89,6 +89,12 @@ class QTogetherAgent:
 # Agents that fit directly #
 ############################
 
+
+class QEwAgent(QTogetherAgent):
+    def learn(self, *args):
+        self.beta = fit_ew(self.X)
+
+
 class QStewTogetherAgent(QTogetherAgent):
     def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
         super().__init__(num_features, actions, regularisation_strength, exploration)
@@ -101,11 +107,6 @@ class QStewTogetherAgent(QTogetherAgent):
 class QRidgeTogetherAgent(QTogetherAgent):
     def learn(self, *args):
         self.beta = fit_ridge(self.X, self.y, self.lam)
-
-
-class QEwTogetherAgent(QTogetherAgent):
-    def learn(self, *args):
-        self.beta = fit_ew(self.X)
 
 
 class QLinRegTogetherAgent(QTogetherAgent):
