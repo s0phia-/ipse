@@ -57,6 +57,20 @@ class LstdqEw(Lstdq):
         return policy.reshape([self.num_actions, self.num_features])
 
 
+class LstdqL2(Lstdq):
+    """
+    Least squares temporal difference Q learning, regularised with equal weights
+    """
+    def __init__(self, num_features, num_actions, policy, source_of_samples, regularisation_strength):
+        super().__init__(num_features, num_actions, policy, source_of_samples, regularisation_strength)
+        self.matrix_id = np.eye(num_features * num_actions)
+
+    def fit(self):
+        self.find_a_and_b()
+        policy = np.matmul(np.linalg.inv(self.matrix_A + self.lam*self.matrix_id), self.vector_b)
+        return policy.reshape([self.num_actions, self.num_features])
+
+
 class LspiAgent:
     def __init__(self, num_features, actions, regularisation_strength, max_samples=10**6, source_of_samples=[]):
         self.source_of_samples = source_of_samples
@@ -121,3 +135,9 @@ class LspiAgentEw(LspiAgent):
     def __init__(self, num_features, actions, regularisation_strength, max_samples=10**5, source_of_samples=[]):
         super().__init__(num_features, actions, regularisation_strength, max_samples, source_of_samples)
         self.model = LstdqEw
+
+
+class LspiAgentL2(LspiAgent):
+    def __init__(self, num_features, actions, regularisation_strength, max_samples=10**5, source_of_samples=[]):
+        super().__init__(num_features, actions, regularisation_strength, max_samples, source_of_samples)
+        self.model = LstdqL2
