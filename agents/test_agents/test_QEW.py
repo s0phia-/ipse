@@ -1,5 +1,5 @@
 import unittest
-from agents.QEW import *
+from agents.QEW_Together import *
 from gym.spaces import Discrete
 
 
