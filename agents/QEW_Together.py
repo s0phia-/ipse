@@ -139,8 +139,9 @@ class QRidgeTogInc(QTogetherAgent):
         self.gamma = 0.9
 
     def learn(self, state, action, reward, state_prime):
-        delta = self.get_td_error(state, action, state_prime, reward)
+        td_err = self.get_td_error(state, action, state_prime, reward)
         reg = self.lam * np.matmul(self.matrix_id, self.beta)
+        delta = self.lr * ((td_err * self.apply_bf(state, action)) + reg)
         self.beta += delta + reg
 
 
@@ -151,5 +152,6 @@ class QLinRegTogInc(QTogetherAgent):
         self.gamma = 0.9
 
     def learn(self, state, action, reward, state_prime):
-        delta = self.get_td_error(state, action, state_prime, reward)
+        td_err = self.get_td_error(state, action, state_prime, reward)
+        delta = self.lr * (td_err * self.apply_bf(state, action))
         self.beta += delta

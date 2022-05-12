@@ -40,7 +40,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_ep_len', type=int, default=200)
     parser.add_argument('--episodes', type=int, default=150000)
     parser.add_argument('--reg_strengths', type=list, default=[0])  # np.logspace(-5, -2, 5))
-    parser.add_argument('--agents', type=list, default=["QLinRegSepInc"])#, "QRidgeTogInc", "QLinRegTogInc", "QLinRegSepInc"])
+    parser.add_argument('--agents', type=list, default=["QLinRegTogInc"])#, "QRidgeTogInc", "QLinRegTogInc", "QLinRegSepInc"])
     parser.add_argument('--direct_features', type=list, default=[False])
     args = parser.parse_args()
 
