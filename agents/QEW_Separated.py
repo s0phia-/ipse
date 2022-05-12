@@ -92,7 +92,6 @@ class QStewSepInc(QSepInc):
         reg = self.lam * np.matmul(self.D, self.beta[action])
         delta = self.lr * ((td_err * state) + reg)
         self.beta[action] -= delta
-        print(reg, self.lam, delta, self.beta)
 
 
 class QRidgeSepInc(QSepInc):
