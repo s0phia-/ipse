@@ -12,7 +12,7 @@ class QSeparatedAgent(QTogetherAgent):
     """
     def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15, *args):
         super().__init__(num_features, actions, regularisation_strength, exploration)
-        self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions, self.num_features])  # np.zeros([self.num_actions, self.num_features])
+        self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions, self.num_features])
         self.X = defaultdict(lambda: [])
         self.y = defaultdict(lambda: [])
         self.D = create_diff_matrix(num_features=self.num_features)
@@ -36,14 +36,6 @@ class QSeparatedAgent(QTogetherAgent):
         all_state_action_q_values = [np.matmul(b, state_features) for b in self.beta]
         argmax_action = random_tiebreak_argmax(all_state_action_q_values)
         return argmax_action, all_state_action_q_values[argmax_action]
-
-    def get_td_error(self, state, action, state_prime, reward):
-        """
-        used for incremental updates to weights vector
-        """
-        a = reward + self.lr * self.get_highest_q_action(state_prime)[1]
-        b = np.matmul(state, self.beta[action])
-        return (a-b) * state
 
 
 ####################################################################
@@ -77,26 +69,41 @@ class QLinRegSeparatedAgent(QSeparatedAgent):
 # Agents that learn incrementally #
 ###################################
 
-class QStewSepInc(QTogetherAgent):
+class QSepInc(QSeparatedAgent):
     def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
         super().__init__(num_features, actions, regularisation_strength, exploration)
-        self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
+        self.lr = 0.001
+        self.gamma = 0.9
+        self.matrix_id = np.eye(self.num_features)
 
+    def get_td_error(self, state, action, state_prime, reward):
+        """
+        used for incremental updates to weights vector
+        """
+        a = reward + self.gamma * self.get_highest_q_action(state_prime)[1]
+        b = np.matmul(state, self.beta[action])
+        return a-b
+
+
+class QStewSepInc(QSepInc):
     def learn(self, state, action, reward, state_prime):
-        delta = self.get_td_error(state, action, state_prime, reward)
+        td_err = self.get_td_error(state, action, state_prime, reward)
         reg = self.lam * np.matmul(self.D, self.beta[action])
-        self.beta[action] += delta + reg
+        delta = self.lr * ((td_err * state) + reg)
+        self.beta[action] += delta
 
 
-class QRidgeSepInc(QTogetherAgent):
+class QRidgeSepInc(QSepInc):
     def learn(self, state, action, reward, state_prime):
-        delta = self.get_td_error(state, action, state_prime, reward)
+        td_err = self.get_td_error(state, action, state_prime, reward)
         reg = self.lam * np.matmul(self.matrix_id, self.beta[action])
-        self.beta[action] += delta + reg
+        delta = self.lr * ((td_err * state) + reg)
+        self.beta[action] += delta
 
 
-class QLinRegSepInc(QTogetherAgent):
+class QLinRegSepInc(QSepInc):
     def learn(self, state, action, reward, state_prime):
-        delta = self.get_td_error(state, action, state_prime, reward)
+        td_err = self.get_td_error(state, action, state_prime, reward)
+        delta = self.lr * td_err * state
         self.beta[action] += delta
 

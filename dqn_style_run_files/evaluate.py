@@ -2,9 +2,10 @@ import time
 import statistics
 import numpy as np
 from envs.cartpole_rbf import CartPoleRBF
-from agents.QEW_Separated import QRidgeSeparatedAgent, QStewSeparatedAgent, QLinRegSeparatedAgent
-from agents.QEW_Together import QEwAgent, QRidgeTogetherAgent, QLinRegTogetherAgent, \
-    QStewTogInc, QRidgeTogInc, QLinRegTogInc
+from agents.QEW_Separated import QRidgeSeparatedAgent, QStewSeparatedAgent, QLinRegSeparatedAgent, QStewSepInc, \
+    QRidgeSepInc, QLinRegSepInc
+from agents.QEW_Together import QEwAgent, QRidgeTogetherAgent, QStewTogetherAgent, QLinRegTogetherAgent, QStewTogInc, \
+    QRidgeTogInc, QLinRegTogInc
 from agents.LSPI import LspiAgent, LspiAgentEw, LspiAgentL2
 # from agents.NN_QEW import DQNAgent
 

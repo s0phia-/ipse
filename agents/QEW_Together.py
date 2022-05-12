@@ -72,14 +72,6 @@ class QTogetherAgent:
                 if done or i == max_episode_length - 1:
                     break
 
-    def get_td_error(self, state, action, state_prime, reward):
-        """
-        used for incremental updates to weights vector
-        """
-        a = reward + self.gamma * self.get_highest_q_action(state_prime)[1]
-        b = np.matmul(self.apply_bf(state, action), self.beta)
-        return a-b
-
 
 ###############################################################
 # create agents as extensions of Q Agent - for easier looping #
@@ -118,26 +110,32 @@ class QLinRegTogetherAgent(QTogetherAgent):
 ###################################
 
 
-class QStewTogInc(QTogetherAgent):
+class QTogInc(QTogetherAgent):
     def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
         super().__init__(num_features, actions, regularisation_strength, exploration)
-        self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
         self.lr = 0.001
         self.gamma = 0.9
+        self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
+        self.matrix_id = np.eye(self.num_actions*self.num_features)
 
+    def get_td_error(self, state, action, state_prime, reward):
+        """
+        used for incremental updates to weights vector
+        """
+        a = reward + self.gamma * self.get_highest_q_action(state_prime)[1]
+        b = np.matmul(self.apply_bf(state, action), self.beta)
+        return a-b
+
+
+class QStewTogInc(QTogInc):
     def learn(self, state, action, reward, state_prime):
         td_err = self.get_td_error(state, action, state_prime, reward)
         reg = self.lam * np.matmul(self.D, self.beta)
         delta = self.lr * ((td_err * self.apply_bf(state, action)) + reg)
         self.beta += delta
 
-class QRidgeTogInc(QTogetherAgent):
-    def __init__(self, num_features, actions, regularisation_strength, exploration=.15, learning_rate=.01):
-        super().__init__(num_features, actions, regularisation_strength, exploration)
-        self.matrix_id = np.eye(self.num_actions*self.num_features)
-        self.lr = learning_rate
-        self.gamma = 0.9
 
+class QRidgeTogInc(QTogInc):
     def learn(self, state, action, reward, state_prime):
         td_err = self.get_td_error(state, action, state_prime, reward)
         reg = self.lam * np.matmul(self.matrix_id, self.beta)
@@ -145,12 +143,7 @@ class QRidgeTogInc(QTogetherAgent):
         self.beta += delta + reg
 
 
-class QLinRegTogInc(QTogetherAgent):
-    def __init__(self, num_features, actions, regularisation_strength, exploration=.15, learning_rate=.01):
-        super().__init__(num_features, actions, regularisation_strength, exploration)
-        self.lr = 0.0001
-        self.gamma = 0.9
-
+class QLinRegTogInc(QTogInc):
     def learn(self, state, action, reward, state_prime):
         td_err = self.get_td_error(state, action, state_prime, reward)
         delta = self.lr * (td_err * self.apply_bf(state, action))
