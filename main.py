@@ -41,8 +41,8 @@ if __name__ == '__main__':
     parser.add_argument('--sleep', type=int, default=0)
     parser.add_argument('--max_ep_len', type=int, default=200)
     parser.add_argument('--episodes', type=int, default=150)
-    parser.add_argument('--reg_strengths', type=list, default=np.append([1], np.logspace(-10, -5, 10)))
-    parser.add_argument('--agents', type=list, default=["QStewSepInc"])
+    parser.add_argument('--reg_strengths', type=list, default=[.007, .5]) #np.append([0], np.logspace(-5, 0, 15)))
+    parser.add_argument('--agents', type=list, default=["QRidgeSepInc", "QStewSepInc"])
     parser.add_argument('--direct_features', type=list, default=[False])
     args = parser.parse_args()
 
@@ -57,25 +57,27 @@ if __name__ == '__main__':
     # Option to run agents with optimal regression coefficient #
     ############################################################
 
-    # optimal_reg = {"QRidgeSeparatedAgent": 0.35,
-    #                "QEwSeparatedAgent": 0,
-    #                "QStewSeparatedAgent": 4.6,
-    #                "QLinRegSeparatedAgent": 0,
-    #                "QStewTogetherAgent": 2,
-    #                "QRidgeTogetherAgent": 2,
-    #                "QLinRegTogetherAgent": 0,
-    #                "LspiAgent": 4.85,
-    #                "LspiAgentL2": 25,
-    #                "LspiAgentEw": 4.85,
-    #                "QStewTogInc": 0.0006,
-    #                "QRidgeTogInc": 0.036,
-    #                "QLinRegTogInc": 0,
-    #                "QStewSepInc": None,
-    #                "QRidgeSepInc": 0.00005,
-    #                "QLinRegSepInc": 0}
-    #
-    # all_run_args = []
-    # for key, item in optimal_reg.items():
-    #     all_run_args += [[agent_i, 3, 3, 0, 200, 150, item, key, False, results_path] for agent_i in range(30)]
+    optimal_reg = {
+        # "QRidgeSeparatedAgent": 0.35,
+        # "QEwSeparatedAgent": 0,
+        # "QStewSeparatedAgent": 4.6,
+        # "QLinRegSeparatedAgent": 0,
+        # "QStewTogetherAgent": 2,
+        # "QRidgeTogetherAgent": 2,
+        # "QLinRegTogetherAgent": 0,
+        # "LspiAgent": 4.85,
+        "LspiAgentL2": [25, 30],
+        # "LspiAgentEw": 4.85,
+        "QStewTogInc": [0.035, 100],
+        "QRidgeTogInc": [0.1, 100],
+        "QLinRegTogInc": [0, 100],
+        "QStewSepInc": [0.007, 100],
+        "QRidgeSepInc": [1, 100],
+        "QLinRegSepInc": [0, 100]
+    }
+
+    all_run_args = []
+    for key, item in optimal_reg.items():
+        all_run_args += [[agent_i, 3, 3, 0, 200, 500, item[0], key, False, results_path] for agent_i in range(item[1])]
 
     pool.starmap(full_run, all_run_args)

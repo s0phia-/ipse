@@ -72,17 +72,18 @@ class QLinRegSeparatedAgent(QSeparatedAgent):
 class QSepInc(QSeparatedAgent):
     def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
         super().__init__(num_features, actions, regularisation_strength, exploration)
-        self.lr = 0.001
-        self.gamma = 0.9
+        self.lr = 0.01
+        self.gamma = 0.99
+        self.lam = regularisation_strength
         self.matrix_id = np.eye(self.num_features)
 
     def get_td_error(self, state, action, state_prime, reward):
         """
         used for incremental updates to weights vector
         """
-        a = reward + self.gamma * self.get_highest_q_action(state_prime)[1]
+        a = reward + (self.gamma * self.get_highest_q_action(state_prime)[1])
         b = np.matmul(state, self.beta[action])
-        return a-b
+        return b-a
 
 
 class QStewSepInc(QSepInc):
@@ -90,7 +91,8 @@ class QStewSepInc(QSepInc):
         td_err = self.get_td_error(state, action, state_prime, reward)
         reg = self.lam * np.matmul(self.D, self.beta[action])
         delta = self.lr * ((td_err * state) + reg)
-        self.beta[action] += delta
+        self.beta[action] -= delta
+        print(reg, self.lam, delta, self.beta)
 
 
 class QRidgeSepInc(QSepInc):
@@ -98,12 +100,11 @@ class QRidgeSepInc(QSepInc):
         td_err = self.get_td_error(state, action, state_prime, reward)
         reg = self.lam * np.matmul(self.matrix_id, self.beta[action])
         delta = self.lr * ((td_err * state) + reg)
-        self.beta[action] += delta
+        self.beta[action] -= delta
 
 
 class QLinRegSepInc(QSepInc):
     def learn(self, state, action, reward, state_prime):
         td_err = self.get_td_error(state, action, state_prime, reward)
-        delta = self.lr * td_err * state
-        self.beta[action] += delta
-
+        delta = self.lr * (td_err * state)
+        self.beta[action] -= delta
