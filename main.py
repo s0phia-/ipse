@@ -58,22 +58,22 @@ if __name__ == '__main__':
     ############################################################
 
     optimal_reg = {
-        # "QRidgeSeparatedAgent": 0.35,
-        # "QEwSeparatedAgent": 0,
-        # "QStewSeparatedAgent": 4.6,
-        # "QLinRegSeparatedAgent": 0,
-        # "QStewTogetherAgent": 2,
-        # "QRidgeTogetherAgent": 2,
-        # "QLinRegTogetherAgent": 0,
-        # "LspiAgent": 4.85,
-        "LspiAgentL2": [25, 30],
-        # "LspiAgentEw": 4.85,
-        "QStewTogInc": [0.035, 100],
-        "QRidgeTogInc": [0.1, 100],
-        "QLinRegTogInc": [0, 100],
-        "QStewSepInc": [0.007, 100],
-        "QRidgeSepInc": [1, 100],
-        "QLinRegSepInc": [0, 100]
+        "QRidgeSeparatedAgent": [0.35, 30],
+        "QEwSeparatedAgent": [0, 30],
+        "QStewSeparatedAgent": [4.6, 30],
+        "QLinRegSeparatedAgent": [0, 30],
+        "QStewTogetherAgent": [2, 30],
+        "QRidgeTogetherAgent": [2, 30],
+        "QLinRegTogetherAgent": [0, 30],
+        "LspiAgent": [4.85, 30],
+        # "LspiAgentL2": [25, 30],
+        "LspiAgentEw": [4.85, 30],
+        # "QStewTogInc": [0.035, 100],
+        # "QRidgeTogInc": [0.1, 100],
+        # "QLinRegTogInc": [0, 100],
+        # "QStewSepInc": [0.007, 100],
+        # "QRidgeSepInc": [1, 100],
+        # "QLinRegSepInc": [0, 100]
     }
 
     all_run_args = []
