@@ -1,82 +1,60 @@
-from datetime import datetime
-import os
-import numpy as np
-import multiprocessing as mp
-import argparse
-
-from dqn_style_run_files.evaluate import full_run
+from analysis.gather_process_data import get_data, process_data, find_best_reg_coef
+from analysis.plot import plot_gg, plot_coef_return
 
 """
- All agents:
-QRidgeSeparatedAgent
-QEwAgent
-QStewSeparatedAgent
-QLinRegSeparatedAgent
-QStewTogetherAgent
-QRidgeTogetherAgent
-QLinRegTogetherAgent
-LspiAgent
-LspiAgentL2
-LspiAgentEw
-QStewTogInc
-QRidgeTogInc
-QStewSepInc
-QRidgeSepInc
-QLinRegSepInc
+All agents:
+"QRidgeSeparatedAgent": "Ridge, separated actions",
+"QEwAgent": "Pure equal weights",
+"QStewSeparatedAgent": "Equal weights regularised, separated actions",
+"QLinRegSeparatedAgent": "Unregularised, separated actions",
+"QStewTogetherAgent": "Equal weights regularised, grouped actions",
+"QRidgeTogetherAgent": "Ridge, grouped actions",
+"QLinRegTogetherAgent": "Unregularised, grouped actions",
+"LspiAgent": "LSPI",
+"LspiAgentL2": "L2 regularised LSPI",
+"LspiAgentEw": "Equal-weights regularised LSPI",
+"QStewTogInc": "Equal weights regularised, grouped actions",
+"QRidgeTogInc": "Ridge, grouped actions",
+"QStewSepInc": "Equal weights regularised, separated actions",
+"QRidgeSepInc": "Ridge, separated actions",
+"QLinRegSepInc": "Unregularised"
 """
+eval_every_x_episodes = 3
+folder_path = '../results/small'
 
-if __name__ == '__main__':
+# compare_agents = {"QStewSeparatedAgent": "Fit closed form, separated actions",
+#                   "QStewTogetherAgent": "Fit closed form, grouped actions",
+#                   "QStewSepInc": "Fit incrementally, separated actions",
+#                   "QStewTogInc": "Fit incrementally, grouped actions",
+#                   "LspiAgentEw": "LSPI"
+#                   }
 
-    results_path = f'results/runtime_{datetime.now()}'
-    if not os.path.exists(results_path):
-        os.makedirs(results_path)
+compare_agents = {"QStewTogInc": "Equal weights regularised, grouped actions",
+"QRidgeTogInc": "Ridge, grouped actions",
+"QStewSepInc": "Equal weights regularised, separated actions",
+"QRidgeSepInc": "Ridge, separated actions",
+"QLinRegSepInc": "Unregularised"}
 
-    pool = mp.Pool(mp.cpu_count())
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--num_agents', type=int, default=50)
-    parser.add_argument('--eval_every_x_episodes', type=int, default=5)
-    parser.add_argument('--eval_iterations', type=int, default=3)
-    parser.add_argument('--sleep', type=int, default=0)
-    parser.add_argument('--max_ep_len', type=int, default=200)
-    parser.add_argument('--episodes', type=int, default=500)
-    parser.add_argument('--reg_strengths', type=list, default=[1]) #np.append([0], np.logspace(-5, 0, 15)))
-    parser.add_argument('--agents', type=list, default=["QStewTogInc", "QRidgeTogInc", "QLinRegTogInc", "QStewSepInc",
-                                                        "QRidgeSepInc", "QLinRegSepInc"])
-    parser.add_argument('--direct_features', type=list, default=[False])
-    args = parser.parse_args()
+all_returns = get_data(folder_path, eval_every_x_episodes)
+all_returns = process_data(all_returns, compare_agents)
 
-    all_run_args = [[agent_i, args.eval_every_x_episodes, args.eval_iterations, args.sleep, args.max_ep_len,
-                     args.episodes, reg_coef, agent, df, results_path]
-                    for agent_i in range(args.num_agents)
-                    for reg_coef in args.reg_strengths
-                    for agent in args.agents
-                    for df in args.direct_features]
+plot, fig = plot_gg(all_returns, "bottom")
+fig.savefig('image1.png', dpi=300, bbox_inches='tight')
 
-    ############################################################
-    # Option to run agents with optimal regression coefficient #
-    ############################################################
+plot, fig = plot_gg(all_returns, "none")
+fig.savefig('image2.png', dpi=300, bbox_inches='tight')
 
-    optimal_reg = {
-        # "QRidgeSeparatedAgent": [0.35, 30],
-        # "QEwSeparatedAgent": [0, 30],
-        # "QStewSeparatedAgent": [4.6, 30],
-        # "QLinRegSeparatedAgent": [0, 30],
-        # "QStewTogetherAgent": [2, 30],
-        # "QRidgeTogetherAgent": [2, 30],
-        # "QLinRegTogetherAgent": [0, 30],
-        "LspiAgent": [4.85, 30],
-        "LspiAgentL2": [25, 30],
-        "LspiAgentEw": [4.85, 30],
-        "QStewTogInc": [0.035, 100],
-        "QRidgeTogInc": [0.1, 100],
-        "QStewSepInc": [0.007, 100],
-        "QRidgeSepInc": [1, 100],
-        "QLinRegSepInc": [0, 100]
-    }
+#####################################################
+#  For finding the best regularisation coefficient  #
+#####################################################
 
-    all_run_args = []
-    for key, item in optimal_reg.items():
-        all_run_args += [[agent_i, 3, 3, 0, 200, 500, item[0], key, False, results_path] for agent_i in range(item[1])]
-
-    pool.starmap(full_run, all_run_args)
+# avg_returns = find_best_reg_coef(all_returns)
+# plot, fig = plot_coef_return(avg_returns)
+# fig.savefig('reg_image.png', dpi=300, bbox_inches='tight')
+#
+# best = avg_returns.loc[avg_returns.groupby(by='agent')['return'].idxmax()]
+# print(best)
+#
+hello = all_returns[all_returns['episode'] == max(all_returns['episode'])].groupby(by='agent')['return'].idxmax()
+print(all_returns.loc[hello])
