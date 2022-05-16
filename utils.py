@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge
 
 
 
@@ -49,7 +49,7 @@ def fit_ridge(x, y, lam):
     """
     x = np.array(x)
     y = np.array(y)
-    a = np.matmul(x.transpose(), x) + (lam * np.identity(x.shape[1]))
+    a = np.matmul(x.transpose(), x) + lam * np.identity(x.shape[1])
     b = np.matmul(x.transpose(), y)
     return np.matmul(np.linalg.inv(a), b)
 

@@ -13,7 +13,7 @@ class Lstdq:
         self.num_features = num_features
         self.num_actions = num_actions
         self.lam = regularisation_strength
-        self.gamma = 0.99  # discount factor
+        self.gamma = 1  # discount factor
         self.matrix_A = np.zeros([self.num_features*self.num_actions, self.num_features*self.num_actions])
         self.vector_b = np.zeros([self.num_features * self.num_actions])
         self.samples = source_of_samples  # called D in LSPI paper

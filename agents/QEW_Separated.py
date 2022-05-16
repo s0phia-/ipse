@@ -73,7 +73,7 @@ class QSepInc(QSeparatedAgent):
     def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
         super().__init__(num_features, actions, regularisation_strength, exploration)
         self.lr = 0.01
-        self.gamma = 0.99
+        self.gamma = 1
         self.lam = regularisation_strength
         self.matrix_id = np.eye(self.num_features)
 

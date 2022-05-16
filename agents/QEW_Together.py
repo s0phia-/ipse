@@ -22,6 +22,7 @@ class QTogetherAgent:
         self.action_space = actions
         self.reward_scale = 1/100
         self.lam = regularisation_strength
+        self.gamma = 1
 
     def epsilon_greedy(self, state):
         if random.uniform(0, 1) < self.epsilon:
@@ -114,7 +115,7 @@ class QTogInc(QTogetherAgent):
     def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
         super().__init__(num_features, actions, regularisation_strength, exploration)
         self.lr = 0.01
-        self.gamma = 0.99
+        self.gamma = 1
         self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
         self.matrix_id = np.eye(self.num_actions*self.num_features)
 
