@@ -7,9 +7,9 @@ import argparse
 from dqn_style_run_files.evaluate import full_run
 
 """
-All agents:
+ All agents:
 QRidgeSeparatedAgent
-QEwSeparatedAgent
+QEwAgent
 QStewSeparatedAgent
 QLinRegSeparatedAgent
 QStewTogetherAgent
@@ -20,7 +20,6 @@ LspiAgentL2
 LspiAgentEw
 QStewTogInc
 QRidgeTogInc
-QLinRegTogInc
 QStewSepInc
 QRidgeSepInc
 QLinRegSepInc
@@ -35,14 +34,15 @@ if __name__ == '__main__':
     pool = mp.Pool(mp.cpu_count())
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_agents', type=int, default=10)
+    parser.add_argument('--num_agents', type=int, default=50)
     parser.add_argument('--eval_every_x_episodes', type=int, default=5)
     parser.add_argument('--eval_iterations', type=int, default=3)
     parser.add_argument('--sleep', type=int, default=0)
     parser.add_argument('--max_ep_len', type=int, default=200)
-    parser.add_argument('--episodes', type=int, default=150)
-    parser.add_argument('--reg_strengths', type=list, default=[.007, .5]) #np.append([0], np.logspace(-5, 0, 15)))
-    parser.add_argument('--agents', type=list, default=["QRidgeSepInc", "QStewSepInc"])
+    parser.add_argument('--episodes', type=int, default=500)
+    parser.add_argument('--reg_strengths', type=list, default=[1]) #np.append([0], np.logspace(-5, 0, 15)))
+    parser.add_argument('--agents', type=list, default=["QStewTogInc", "QRidgeTogInc", "QLinRegTogInc", "QStewSepInc",
+                                                        "QRidgeSepInc", "QLinRegSepInc"])
     parser.add_argument('--direct_features', type=list, default=[False])
     args = parser.parse_args()
 
@@ -58,22 +58,21 @@ if __name__ == '__main__':
     ############################################################
 
     optimal_reg = {
-        "QRidgeSeparatedAgent": [0.35, 30],
-        "QEwSeparatedAgent": [0, 30],
-        "QStewSeparatedAgent": [4.6, 30],
-        "QLinRegSeparatedAgent": [0, 30],
-        "QStewTogetherAgent": [2, 30],
-        "QRidgeTogetherAgent": [2, 30],
-        "QLinRegTogetherAgent": [0, 30],
+        # "QRidgeSeparatedAgent": [0.35, 30],
+        # "QEwSeparatedAgent": [0, 30],
+        # "QStewSeparatedAgent": [4.6, 30],
+        # "QLinRegSeparatedAgent": [0, 30],
+        # "QStewTogetherAgent": [2, 30],
+        # "QRidgeTogetherAgent": [2, 30],
+        # "QLinRegTogetherAgent": [0, 30],
         "LspiAgent": [4.85, 30],
-        # "LspiAgentL2": [25, 30],
+        "LspiAgentL2": [25, 30],
         "LspiAgentEw": [4.85, 30],
-        # "QStewTogInc": [0.035, 100],
-        # "QRidgeTogInc": [0.1, 100],
-        # "QLinRegTogInc": [0, 100],
-        # "QStewSepInc": [0.007, 100],
-        # "QRidgeSepInc": [1, 100],
-        # "QLinRegSepInc": [0, 100]
+        "QStewTogInc": [0.035, 100],
+        "QRidgeTogInc": [0.1, 100],
+        "QStewSepInc": [0.007, 100],
+        "QRidgeSepInc": [1, 100],
+        "QLinRegSepInc": [0, 100]
     }
 
     all_run_args = []
