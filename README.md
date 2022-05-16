@@ -21,7 +21,7 @@ followed by the hyper parameters you wish to set. These are:
 - `--agents`: list of linear function approximator methods to train
 - `--direct_features`: a list of booleans. True will multiply state feature values by -1 if the feature is correlated negatively with the outcome. False does nothing.  
 
-The possible inputs to `agents` are:
+The possible inputs to `--agents` are:
 - `QRidgeSeparatedAgent`: Closed form ridge with separated state feature vectors for each action
 - `QEwAgent`: Closed form pure equal weights: all weights set to 1
 - `QStewSeparatedAgent`: Closed form equal weights regularised linear regression  with separated features for actions
