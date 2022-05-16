@@ -12,7 +12,7 @@ class QTogetherAgent:
     Similar to the implementation of DQN, but directly fits the closed form solution to the linear function approximator
     """
     def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15):
-        self.experience_window = 10000
+        self.experience_window = 100000
         self.epsilon = exploration
         self.num_features = num_features
         self.num_actions = actions.n

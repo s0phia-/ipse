@@ -14,7 +14,6 @@ QStewSeparatedAgent
 QLinRegSeparatedAgent
 QStewTogetherAgent
 QRidgeTogetherAgent
-QLinRegTogetherAgent
 LspiAgent
 LspiAgentL2
 LspiAgentEw
@@ -31,7 +30,7 @@ QLinRegSepInc
 
 # You can either run a full run with a cross product of all the different arguments parsed, or only run the agents for
 # optimal regularisation parameters. Set to False for the former, True for the latter.
-run_optimal = True
+run_optimal = False
 
 if __name__ == '__main__':
 
@@ -47,14 +46,16 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--run_optimal', type=bool, default=run_optimal)
-    parser.add_argument('--num_agents', type=int, default=50)
+    parser.add_argument('--num_agents', type=int, default=5)
     parser.add_argument('--eval_every_x_episodes', type=int, default=5)
     parser.add_argument('--eval_iterations', type=int, default=3)
     parser.add_argument('--sleep', type=int, default=0)
     parser.add_argument('--max_ep_len', type=int, default=200)
     parser.add_argument('--episodes', type=int, default=500)
-    parser.add_argument('--reg_strengths', type=list, default=[np.logspace(-5, 0, 15)])
-    parser.add_argument('--agents', type=list, default=["QStewTogInc"])
+    parser.add_argument('--reg_strengths', type=list, default=np.logspace(-2, 1, 5))
+    parser.add_argument('--agents', type=list, default=["QRidgeSeparatedAgent", "QStewSeparatedAgent",
+                                                        "QLinRegSeparatedAgent", "QStewTogetherAgent",
+                                                        "QRidgeTogetherAgent"])
     parser.add_argument('--direct_features', type=list, default=[False])
     args = parser.parse_args()
 
@@ -73,7 +74,7 @@ if __name__ == '__main__':
     ############################################################
 
     optimal_reg = {  # agent: [optimal regularisation strength, number of agents to compare]
-        "QRidgeSeparatedAgent": [0.35, 30],
+        "QRidgeSeparatedAgent": [0.05, 30],
         "QEwSeparatedAgent": [0, 30],
         "QStewSeparatedAgent": [4.6, 30],
         "QLinRegSeparatedAgent": [0, 30],
