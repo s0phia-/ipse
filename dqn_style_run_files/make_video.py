@@ -1,6 +1,7 @@
 import numpy as np
 import time
 
+from gym.envs.classic_control import CartPoleEnv
 from envs.cartpole_rbf import CartPoleRBF
 from agents.QEW_Together import QStewTogetherAgent
 
@@ -25,18 +26,27 @@ def evaluate(agent, env, sleep_time, episodes, max_episode_length):
                 all_returns.append(cumulative_reward)
                 break
     agent.epsilon = agent_epsilon
-    env.close()
     return all_returns
 
 
 if __name__ == '__main__':
-    env = CartPoleRBF(direct_features=False)
-    agent = QStewTogetherAgent(env.num_features, env.action_space, regularisation_strength=2)
-    print('Untrained')
-    evaluate(agent=agent, env=env, sleep_time=0.01, episodes=50,
-             max_episode_length=200)
-    agent.run(env=env, episodes=500, max_episode_length=200,
-              sleep_time=0, stopping_criteria=1)
-    print('Trained')
-    evaluate(agent=agent, env=env, sleep_time=0.01, episodes=50,
-             max_episode_length=200)
+    sleep_time = 0.01
+    env = CartPoleEnv()
+    for _ in range(50):
+        env.reset()
+        env.render(mode="human")
+        for i in range(200):
+            env.step(env.action_space.sample())
+            time.sleep(sleep_time)
+
+    #
+    # env = CartPoleRBF(direct_features=False)
+    # agent = QStewTogetherAgent(env.num_features, env.action_space, regularisation_strength=2)
+    # print('Untrained')
+    # evaluate(agent=agent, env=env, sleep_time=0.01, episodes=50,
+    #          max_episode_length=200)
+    # agent.run(env=env, episodes=500, max_episode_length=200,
+    #           sleep_time=0, stopping_criteria=1)
+    # print('Trained')
+    # evaluate(agent=agent, env=env, sleep_time=0.01, episodes=50,
+    #          max_episode_length=200)

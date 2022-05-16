@@ -20,14 +20,20 @@ All agents:
 "QLinRegSepInc": "Unregularised"
 """
 eval_every_x_episodes = 3
-folder_path = '../results/all'
+folder_path = '../results/small'
 
-compare_agents = {"QStewSeparatedAgent": "Fit closed form, separated actions",
-                  "QStewTogetherAgent": "Fit closed form, grouped actions",
-                  "QStewSepInc": "Fit incrementally, separated actions",
-                  "QStewTogInc": "Fit incrementally, grouped actions",
-                  "LspiAgentEw": "LSPI"
-                  }
+# compare_agents = {"QStewSeparatedAgent": "Fit closed form, separated actions",
+#                   "QStewTogetherAgent": "Fit closed form, grouped actions",
+#                   "QStewSepInc": "Fit incrementally, separated actions",
+#                   "QStewTogInc": "Fit incrementally, grouped actions",
+#                   "LspiAgentEw": "LSPI"
+#                   }
+
+compare_agents = {"QStewTogInc": "Equal weights regularised, grouped actions",
+"QRidgeTogInc": "Ridge, grouped actions",
+"QStewSepInc": "Equal weights regularised, separated actions",
+"QRidgeSepInc": "Ridge, separated actions",
+"QLinRegSepInc": "Unregularised"}
 
 
 all_returns = get_data(folder_path, eval_every_x_episodes)
