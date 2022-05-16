@@ -21,7 +21,8 @@ class QSeparatedAgent(QTogetherAgent):
         """
         Add the latest observation to X and y
         """
-        est_return_s_prime = self.get_highest_q_action(state_prime_features)[1] + (reward*self.reward_scale)
+        est_return_s_prime = self.gamma * (self.get_highest_q_action(state_prime_features)[1] +
+                                           (reward*self.reward_scale))
         self.X[action].append(state_features)
         self.y[action].append(est_return_s_prime)
         if len(self.X[action]) > self.experience_window:
@@ -73,7 +74,6 @@ class QSepInc(QSeparatedAgent):
     def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
         super().__init__(num_features, actions, regularisation_strength, exploration)
         self.lr = 0.01
-        self.gamma = 1
         self.lam = regularisation_strength
         self.matrix_id = np.eye(self.num_features)
 
@@ -81,7 +81,7 @@ class QSepInc(QSeparatedAgent):
         """
         used for incremental updates to weights vector
         """
-        a = reward + (self.gamma * self.get_highest_q_action(state_prime)[1])
+        a = self.gamma * (reward + self.get_highest_q_action(state_prime)[1])
         b = np.matmul(state, self.beta[action])
         return b-a
 

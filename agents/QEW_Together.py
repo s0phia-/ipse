@@ -20,9 +20,9 @@ class QTogetherAgent:
         self.y = np.zeros([0, 1])
         self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions * self.num_features])
         self.action_space = actions
-        self.reward_scale = 1/100
+        self.reward_scale = 1  # 1/100
         self.lam = regularisation_strength
-        self.gamma = 1
+        self.gamma = .95
 
     def epsilon_greedy(self, state):
         if random.uniform(0, 1) < self.epsilon:
@@ -40,7 +40,8 @@ class QTogetherAgent:
         """
         Add the latest observation to X and y
         """
-        est_return_s_prime = self.get_highest_q_action(state_prime_features)[1] + reward*self.reward_scale
+        est_return_s_prime = self.gamma * (self.get_highest_q_action(state_prime_features)[1] +
+                                           reward*self.reward_scale)
         state_action_features = self.apply_bf(state_features, action)
         self.X = np.vstack([self.X, state_action_features])
         self.y = np.append(self.y, est_return_s_prime)
@@ -115,7 +116,6 @@ class QTogInc(QTogetherAgent):
     def __init__(self, num_features, actions, regularisation_strength, exploration=.15):
         super().__init__(num_features, actions, regularisation_strength, exploration)
         self.lr = 0.01
-        self.gamma = 1
         self.D = create_diff_matrix(num_features=self.num_features * self.num_actions)
         self.matrix_id = np.eye(self.num_actions*self.num_features)
 
@@ -123,7 +123,7 @@ class QTogInc(QTogetherAgent):
         """
         used for incremental updates to weights vector
         """
-        a = reward + (self.gamma * self.get_highest_q_action(state_prime)[1])
+        a = self.gamma * (reward + self.get_highest_q_action(state_prime)[1])
         b = np.matmul(self.apply_bf(state, action), self.beta)
         return b-a
 
