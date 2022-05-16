@@ -25,6 +25,14 @@ QRidgeSepInc
 QLinRegSepInc
 """
 
+##############
+# important! #
+##############
+
+# You can either run a full run with a cross product of all the different arguments parsed, or only run the agents for
+# optimal regularisation parameters. Set to False for the former, True for the latter.
+run_optimal = True
+
 if __name__ == '__main__':
 
     results_path = f'results/runtime_{datetime.now()}'
@@ -33,38 +41,45 @@ if __name__ == '__main__':
 
     pool = mp.Pool(mp.cpu_count())
 
+    #####################################
+    # Run a cross product of parameters #
+    #####################################
+
     parser = argparse.ArgumentParser()
+    parser.add_argument('--run_optimal', type=bool, default=run_optimal)
     parser.add_argument('--num_agents', type=int, default=50)
     parser.add_argument('--eval_every_x_episodes', type=int, default=5)
     parser.add_argument('--eval_iterations', type=int, default=3)
     parser.add_argument('--sleep', type=int, default=0)
     parser.add_argument('--max_ep_len', type=int, default=200)
     parser.add_argument('--episodes', type=int, default=500)
-    parser.add_argument('--reg_strengths', type=list, default=[1]) #np.append([0], np.logspace(-5, 0, 15)))
-    parser.add_argument('--agents', type=list, default=["QStewTogInc", "QRidgeTogInc", "QLinRegTogInc", "QStewSepInc",
-                                                        "QRidgeSepInc", "QLinRegSepInc"])
+    parser.add_argument('--reg_strengths', type=list, default=[np.logspace(-5, 0, 15)])
+    parser.add_argument('--agents', type=list, default=["QStewTogInc"])
     parser.add_argument('--direct_features', type=list, default=[False])
     args = parser.parse_args()
 
-    all_run_args = [[agent_i, args.eval_every_x_episodes, args.eval_iterations, args.sleep, args.max_ep_len,
-                     args.episodes, reg_coef, agent, df, results_path]
-                    for agent_i in range(args.num_agents)
-                    for reg_coef in args.reg_strengths
-                    for agent in args.agents
-                    for df in args.direct_features]
+    run_optimal = args.run_optimal
+
+    if not run_optimal:
+        all_run_args = [[agent_i, args.eval_every_x_episodes, args.eval_iterations, args.sleep, args.max_ep_len,
+                         args.episodes, reg_coef, agent, df, results_path]
+                        for agent_i in range(args.num_agents)
+                        for reg_coef in args.reg_strengths
+                        for agent in args.agents
+                        for df in args.direct_features]
 
     ############################################################
     # Option to run agents with optimal regression coefficient #
     ############################################################
 
-    optimal_reg = {
-        # "QRidgeSeparatedAgent": [0.35, 30],
-        # "QEwSeparatedAgent": [0, 30],
-        # "QStewSeparatedAgent": [4.6, 30],
-        # "QLinRegSeparatedAgent": [0, 30],
-        # "QStewTogetherAgent": [2, 30],
-        # "QRidgeTogetherAgent": [2, 30],
-        # "QLinRegTogetherAgent": [0, 30],
+    optimal_reg = {  # agent: [optimal regularisation strength, number of agents to compare]
+        "QRidgeSeparatedAgent": [0.35, 30],
+        "QEwSeparatedAgent": [0, 30],
+        "QStewSeparatedAgent": [4.6, 30],
+        "QLinRegSeparatedAgent": [0, 30],
+        "QStewTogetherAgent": [2, 30],
+        "QRidgeTogetherAgent": [2, 30],
+        "QLinRegTogetherAgent": [0, 30],
         "LspiAgent": [4.85, 30],
         "LspiAgentL2": [25, 30],
         "LspiAgentEw": [4.85, 30],
@@ -75,8 +90,9 @@ if __name__ == '__main__':
         "QLinRegSepInc": [0, 100]
     }
 
-    all_run_args = []
-    for key, item in optimal_reg.items():
-        all_run_args += [[agent_i, 3, 3, 0, 200, 500, item[0], key, False, results_path] for agent_i in range(item[1])]
+    if run_optimal:
+        all_run_args = []
+        for key, item in optimal_reg.items():
+            all_run_args += [[agent_i, 3, 3, 0, 200, 500, item[0], key, False, results_path] for agent_i in range(item[1])]
 
     pool.starmap(full_run, all_run_args)
