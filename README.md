@@ -20,3 +20,22 @@ followed by the hyper parameters you wish to set. These are:
 - `--reg_strengths`: list of regularisation strengths to try 
 - `--agents`: list of linear function approximator methods to train
 - `--direct_features`: a list of booleans. True will multiply state feature values by -1 if the feature is correlated negatively with the outcome. False does nothing.  
+
+The possible inputs to `agents` are:
+- `QRidgeSeparatedAgent`: Closed form ridge with separated state feature vectors for each action
+- `QEwAgent`: Closed form pure equal weights: all weights set to 1
+- `QStewSeparatedAgent`: Closed form equal weights regularised linear regression  with separated features for actions
+- `QLinRegSeparatedAgent`: Closed form unregularised linear regression, separated state feature vectors for actions
+- `QStewTogetherAgent`: Closed form equal weights regularised linear regression, 1 state action vector
+- `QRidgeTogetherAgent`: Closed form ridge with 1 state action vector
+- `QLinRegTogetherAgent`: Closed form unregularised linear regression, 1 state action vector 
+- `LspiAgent`: Unregularised LSPI
+- `LspiAgentL2`: L2 regularised LSPI
+- `LspiAgentEw`: Equal weights regularised LSPI
+- `QStewTogInc`: Incremental update equal weights regularised linear regression, 1 state action vector
+- `QRidgeTogInc`: Incremental update ridge, 1 state action vector
+- `QStewSepInc`: Incremental update equal weights regularised linear regression,separate state feature vector for actions
+- `QRidgeSepInc`: Incremental update ridge, separate state feature vector for each action
+- `QLinRegSepInc`: Incremental update unregularised linear regression
+
+A full description of these agents is in the method section of the project report. Any agents not listed here are either not finished, or not my work (Malte Lichtenberg also created some agents in this repository, entirely separate from the agents mentioned here).
