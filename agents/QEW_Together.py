@@ -40,8 +40,9 @@ class QTogetherAgent:
         """
         Add the latest observation to X and y
         """
-        est_return_s_prime = self.gamma * (self.get_highest_q_action(state_prime_features)[1] +
-                                           reward*self.reward_scale)
+        est_return_s_prime = reward * self.reward_scale + (self.gamma *
+                                                           self.get_highest_q_action(state_prime_features)[1])
+
         state_action_features = self.apply_bf(state_features, action)
         self.X = np.vstack([self.X, state_action_features])
         self.y = np.append(self.y, est_return_s_prime)
@@ -123,7 +124,7 @@ class QTogInc(QTogetherAgent):
         """
         used for incremental updates to weights vector
         """
-        a = self.gamma * (reward + self.get_highest_q_action(state_prime)[1])
+        a = reward + (self.gamma * self.get_highest_q_action(state_prime)[1])
         b = np.matmul(self.apply_bf(state, action), self.beta)
         return b-a
 
