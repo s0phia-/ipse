@@ -21,19 +21,21 @@ def get_data(folder_path, eval_every_x_episodes):
                            'return': returns}
         returns_one_run = pd.DataFrame(returns_one_run)
         all_returns = pd.concat([all_returns, returns_one_run], axis=0)
-        #all_returns['agent'] = np.where(all_returns['agent_rough'] == "ew",
-        #                                "Equal Weights Regularised Linear Regression",
-        #                                "Ridge Regression")
+    #    all_returns = all_returns[all_returns['reg_coef'] < 5]
+    all_returns['reg_coef'] = all_returns['reg_coef'].astype(str)
     return all_returns
 
 
-def process_data(df):
+def process_data(df, compare_agents):
+    df = df[df.agent.isin(compare_agents.keys())]
+    df = df.replace({"agent": compare_agents})
     processed_data = df.groupby(['agent', 'reg_coef', 'episode'])['return'].mean()
     processed_data = pd.DataFrame({'return': processed_data}).reset_index()
     return processed_data
 
 
 def find_best_reg_coef(df):
+    df['reg_coef'] = df['reg_coef'].astype(float)
     avg_return = df.groupby(['agent', 'reg_coef'])['return'].mean()
     avg_return = pd.DataFrame({'return': avg_return}).reset_index()
     return avg_return
