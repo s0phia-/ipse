@@ -17,7 +17,7 @@ def plot_dict(returns_dict, x_axis_factor, legend_label):
 
 def plot_gg(pd_df, legend_pos):
     fig, plot = (p9.ggplot(data=pd_df,
-                           mapping=p9.aes(x='episode', y='mean', color='agent', shape='agent')) +
+                           mapping=p9.aes(x='episode', y='mean', color='reg_coef', shape='agent')) +
                  p9.geom_line() +
                  p9.geom_point() +
                  p9.theme_bw() +
