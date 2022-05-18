@@ -12,7 +12,7 @@ class QTogetherAgent:
     Similar to the implementation of DQN, but directly fits the closed form solution to the linear function approximator
     """
     def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15):
-        self.experience_window = 100000
+        self.experience_window = 1000
         self.epsilon = exploration
         self.num_features = num_features
         self.num_actions = actions.n
@@ -20,9 +20,13 @@ class QTogetherAgent:
         self.y = np.zeros([0, 1])
         self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions * self.num_features])
         self.action_space = actions
-        self.reward_scale = 1  # 1/100
+        self.reward_scale = 1
         self.lam = regularisation_strength
         self.gamma = .95
+
+    def adjust_reg_param(self, action):
+        n = self.X.shape[0]
+        self.lam = 25**(1/np.exp(n/500))-1
 
     def epsilon_greedy(self, state):
         if random.uniform(0, 1) < self.epsilon:
@@ -42,7 +46,6 @@ class QTogetherAgent:
         """
         est_return_s_prime = reward * self.reward_scale + (self.gamma *
                                                            self.get_highest_q_action(state_prime_features)[1])
-
         state_action_features = self.apply_bf(state_features, action)
         self.X = np.vstack([self.X, state_action_features])
         self.y = np.append(self.y, est_return_s_prime)
@@ -70,6 +73,7 @@ class QTogetherAgent:
                 _, reward, done, info = env.step(action)
                 state_prime = info["state_features"]
                 self.store_data(state, action, reward, state_prime)
+                #  self.adjust_reg_param(action)  # TODO
                 self.learn(state, action, reward, state_prime)
                 state = state_prime
                 if done or i == max_episode_length - 1:
@@ -101,12 +105,18 @@ class QStewTogetherAgent(QTogetherAgent):
 
 class QRidgeTogetherAgent(QTogetherAgent):
     def learn(self, *args):
-        self.beta = fit_ridge(self.X, self.y, self.lam)
+        if self.X.shape[1] < 20:
+            pass
+        else:
+            self.beta = fit_ridge(self.X, self.y, self.lam)
 
 
 class QLinRegTogetherAgent(QTogetherAgent):
     def learn(self, *args):
-        self.beta = fit_lin_reg(self.X, self.y)
+        if self.X.shape[1] < 100:
+            pass
+        else:
+            self.beta = fit_lin_reg(self.X, self.y)
 
 ###################################
 # Agents that learn incrementally #
