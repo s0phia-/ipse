@@ -12,10 +12,14 @@ class QSeparatedAgent(QTogetherAgent):
     """
     def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15, *args):
         super().__init__(num_features, actions, regularisation_strength, exploration)
-        self.beta = np.zeros([self.num_actions, self.num_features])  # .random.uniform(low=0, high=1, size=[self.num_actions, self.num_features])
+        self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions, self.num_features])
         self.X = defaultdict(lambda: [])
         self.y = defaultdict(lambda: [])
         self.D = create_diff_matrix(num_features=self.num_features)
+
+    def adjust_reg_param(self, action):
+        n = len(self.X[action])
+        self.lam = 25**(1/np.exp(n/500))-1
 
     def store_data(self, state_features, action, reward, state_prime_features):
         """
@@ -59,7 +63,7 @@ class QRidgeSeparatedAgent(QSeparatedAgent):
 
 class QLinRegSeparatedAgent(QSeparatedAgent):
     def learn(self, state_features, action, reward, state_prime_features):
-        if len(self.y[action]) < 1000:
+        if len(self.y[action]) < 100:
             pass
         else:
             self.beta[action] = fit_lin_reg(self.X[action], self.y[action])
