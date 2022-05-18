@@ -20,7 +20,7 @@ class QTogetherAgent:
         self.y = np.zeros([0, 1])
         self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions * self.num_features])
         self.action_space = actions
-        self.reward_scale = 1
+        self.reward_scale = 1/100
         self.lam = regularisation_strength
         self.gamma = .95
 
