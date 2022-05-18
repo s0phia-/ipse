@@ -12,7 +12,7 @@ class QSeparatedAgent(QTogetherAgent):
     """
     def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15, *args):
         super().__init__(num_features, actions, regularisation_strength, exploration)
-        self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions, self.num_features])
+        self.beta = np.zeros([self.num_actions, self.num_features])  # .random.uniform(low=0, high=1, size=[self.num_actions, self.num_features])
         self.X = defaultdict(lambda: [])
         self.y = defaultdict(lambda: [])
         self.D = create_diff_matrix(num_features=self.num_features)

@@ -19,21 +19,17 @@ All agents:
 "QRidgeSepInc": "Ridge, separated actions",
 "QLinRegSepInc": "Unregularised"
 """
-eval_every_x_episodes = 3
-folder_path = '../results/small'
+eval_every_x_episodes = 5
+folder_path = '../results/temp copy'
 
-# compare_agents = {"QStewSeparatedAgent": "Fit closed form, separated actions",
-#                   "QStewTogetherAgent": "Fit closed form, grouped actions",
-#                   "QStewSepInc": "Fit incrementally, separated actions",
-#                   "QStewTogInc": "Fit incrementally, grouped actions",
-#                   "LspiAgentEw": "LSPI"
-#                   }
+compare_agents = {
+    "QRidgeSeparatedAgent": "Ridge, separated actions",
+    "QRidgeTogetherAgent": "Ridge, grouped actions",
+"QRidgeTogInc": "Ridge, grouped actions inc",
+"QRidgeSepInc": "Ridge, separated actions inc",
 
-compare_agents = {"QStewTogInc": "Equal weights regularised, grouped actions",
-"QRidgeTogInc": "Ridge, grouped actions",
-"QStewSepInc": "Equal weights regularised, separated actions",
-"QRidgeSepInc": "Ridge, separated actions",
-"QLinRegSepInc": "Unregularised"}
+
+}
 
 
 all_returns = get_data(folder_path, eval_every_x_episodes)
@@ -56,5 +52,5 @@ fig.savefig('image2.png', dpi=300, bbox_inches='tight')
 # best = avg_returns.loc[avg_returns.groupby(by='agent')['return'].idxmax()]
 # print(best)
 #
-hello = all_returns[all_returns['episode'] == max(all_returns['episode'])].groupby(by='agent')['return'].idxmax()
+hello = all_returns[all_returns['episode'] == max(all_returns['episode'])].groupby(by='agent')['mean'].idxmax()
 print(all_returns.loc[hello])
