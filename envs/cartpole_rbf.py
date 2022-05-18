@@ -28,7 +28,8 @@ class CartPoleRBF(CartPoleEnv):
         omega = self.state[3]
         s = np.array([[theta],
                       [omega]])
-        rbf = np.append([1], np.exp(-(np.linalg.norm(s - self.rbf_grid, axis=0)**2) / 2))  # TODO
+        rbf = np.append([1], np.exp(-(np.linalg.norm(s - self.rbf_grid, axis=0)) / 2))  # TODO
+
         directed_rbf = np.multiply(rbf, self.feature_directions)
         self.state_features = directed_rbf
         return directed_rbf
