@@ -79,7 +79,7 @@ class LspiAgent:
         self.num_actions = actions.n
         self.reg_strength = regularisation_strength
         self.policy = np.zeros([self.num_actions, self.num_features])
-        self.epsilon = .15
+        self.epsilon = 1 # TODO
         self.action_space = actions
         self.model = Lstdq
 

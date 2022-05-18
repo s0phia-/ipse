@@ -51,9 +51,9 @@ if __name__ == '__main__':
     parser.add_argument('--eval_iterations', type=int, default=3)
     parser.add_argument('--sleep', type=int, default=0)
     parser.add_argument('--max_ep_len', type=int, default=200)
-    parser.add_argument('--episodes', type=int, default=500)
-    parser.add_argument('--reg_strengths', type=list, default=np.logspace(-2, 2, 6))
-    parser.add_argument('--agents', type=list, default=["QRidgeSeparatedAgent"])
+    parser.add_argument('--episodes', type=int, default=150)
+    parser.add_argument('--reg_strengths', type=list, default=np.logspace(-1, 2, 8))
+    parser.add_argument('--agents', type=list, default=["LspiAgent", "LspiAgentL2", "LspiAgentEw"])
     parser.add_argument('--direct_features', type=list, default=[False])
     args = parser.parse_args()
 
