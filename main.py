@@ -30,7 +30,7 @@ QLinRegSepInc
 
 # You can either run a full run with a cross product of all the different arguments parsed, or only run the agents for
 # optimal regularisation parameters. Set to False for the former, True for the latter.
-run_optimal = False
+run_optimal = True
 
 if __name__ == '__main__':
 
@@ -52,8 +52,8 @@ if __name__ == '__main__':
     parser.add_argument('--sleep', type=int, default=0)
     parser.add_argument('--max_ep_len', type=int, default=200)
     parser.add_argument('--episodes', type=int, default=150)
-    parser.add_argument('--reg_strengths', type=list, default=np.logspace(-1, 2, 8))
-    parser.add_argument('--agents', type=list, default=["LspiAgent", "LspiAgentL2", "LspiAgentEw"])
+    parser.add_argument('--reg_strengths', type=list, default=np.logspace(-2, 1.5, 10))
+    parser.add_argument('--agents', type=list, default=["QRidgeSeparatedAgent", "QRidgeTogetherAgent"])
     parser.add_argument('--direct_features', type=list, default=[False])
     args = parser.parse_args()
 
@@ -72,20 +72,20 @@ if __name__ == '__main__':
     ############################################################
 
     optimal_reg = {  # agent: [optimal regularisation strength, number of agents to compare]
-        "QRidgeSeparatedAgent": [0.01, 30],
+        "QRidgeSeparatedAgent": [13, 30],
         "QEwSeparatedAgent": [0, 30],
-        "QStewSeparatedAgent": [4.6, 30],
-        "QStewTogetherAgent": [2, 30],
-        "QRidgeTogetherAgent": [0.01, 30],
+        # "QStewSeparatedAgent": [4.6, 30],
+        # "QStewTogetherAgent": [2, 30],
+        "QRidgeTogetherAgent": [0.06, 30],
         "QLinRegTogetherAgent": [0, 30],
         "LspiAgent": [4.85, 20],
-        "LspiAgentL2": [25, 20],
+        "LspiAgentL2": [100, 20],
         "LspiAgentEw": [4.85, 20],
-        "QStewTogInc": [0.035, 100],
-        "QRidgeTogInc": [0.1, 100],
-        "QStewSepInc": [0.007, 100],
-        "QRidgeSepInc": [1, 100],
-        "QLinRegSepInc": [0, 100]
+        # "QStewTogInc": [0.035, 100],
+        # "QRidgeTogInc": [0.1, 100],
+        # "QStewSepInc": [0.007, 100],
+        # "QRidgeSepInc": [1, 100],
+        # "QLinRegSepInc": [0, 100]
     }
 
     if run_optimal:
