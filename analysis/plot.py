@@ -17,12 +17,12 @@ def plot_dict(returns_dict, x_axis_factor, legend_label):
 
 def plot_gg(pd_df, legend_pos):
     fig, plot = (p9.ggplot(data=pd_df,
-                           mapping=p9.aes(x='episode', y='mean', color='reg_coef', shape='agent')) +
+                           mapping=p9.aes(x='episode', y='mean', color='agent')) +
                  p9.geom_line() +
                  p9.geom_point() +
                  p9.theme_bw() +
                  p9.labs(x="Episode", y="Total Return", color="Model") +
-                 p9.geom_pointrange(p9.aes(ymin='ymin', ymax='ymax'), position=p9.position_dodge(width=1)) +
+                 #  p9.geom_pointrange(p9.aes(ymin='ymin', ymax='ymax'), position=p9.position_dodge(width=1)) +
                  p9.theme(text=p9.element_text(size=20), legend_position=legend_pos)
                  ).draw(show=True, return_ggplot=True)
     return plot, fig

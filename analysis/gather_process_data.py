@@ -21,7 +21,7 @@ def get_data(folder_path, eval_every_x_episodes):
                            'return': returns}
         returns_one_run = pd.DataFrame(returns_one_run)
         all_returns = pd.concat([all_returns, returns_one_run], axis=0)
-        all_returns = all_returns[all_returns['episode'] < 151]
+       #  all_returns = all_returns[all_returns['episode'] < 151]
     all_returns['reg_coef'] = all_returns['reg_coef'].astype(str)
     return all_returns
 
