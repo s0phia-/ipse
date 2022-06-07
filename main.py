@@ -30,7 +30,7 @@ QLinRegSepInc
 
 # You can either run a full run with a cross product of all the different arguments parsed, or only run the agents for
 # optimal regularisation parameters. Set to False for the former, True for the latter.
-run_optimal = False
+run_optimal = True
 
 if __name__ == '__main__':
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     parser.add_argument('--episodes', type=int, default=500)
     parser.add_argument('--reg_strengths', type=list, default=np.logspace(-2, 1.5, 10))
     parser.add_argument('--agents', type=list, default=["QRidgeSeparatedAgent"])
-    parser.add_argument('--direct_features', type=list, default=[False])
+    parser.add_argument('--direct_features', type=list, default=[True, False])
     args = parser.parse_args()
 
     run_optimal = args.run_optimal
@@ -91,6 +91,7 @@ if __name__ == '__main__':
     if run_optimal:
         all_run_args = []
         for key, item in optimal_reg.items():
-            all_run_args += [[agent_i, 3, 3, 0, 200, 500, item[0], key, False, results_path] for agent_i in range(item[1])]
+            all_run_args += [[agent_i, 3, 3, 0, 200, 500, item[0], key, True, results_path] for agent_i in
+                             range(item[1])]
 
     pool.starmap(full_run, all_run_args)
