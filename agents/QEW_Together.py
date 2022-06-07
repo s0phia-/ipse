@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import time
+from scipy.stats import pearsonr
 from agents.stew.utils import create_diff_matrix
 from utils import random_tiebreak_argmax, fit_lin_reg, fit_ew, fit_ridge, fit_stew
 
@@ -12,7 +13,7 @@ class QTogetherAgent:
     Similar to the implementation of DQN, but directly fits the closed form solution to the linear function approximator
     """
     def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15):
-        self.experience_window = 1000
+        self.experience_window = 1000000000
         self.epsilon = exploration
         self.num_features = num_features
         self.num_actions = actions.n
@@ -20,13 +21,34 @@ class QTogetherAgent:
         self.y = np.zeros([0, 1])
         self.beta = np.random.uniform(low=0, high=1, size=[self.num_actions * self.num_features])
         self.action_space = actions
-        self.reward_scale = 1/100
+        self.reward_scale = 1
         self.lam = regularisation_strength
         self.gamma = .95
+        self.feature_directions = np.ones[self.num_features * self.num_actions]
+        self.feature_direction_switch = self.feature_directions  # convert from old feature directions to new
 
     def adjust_reg_param(self, action):
         n = self.X.shape[0]
         self.lam = 25**(1/np.exp(n/500))-1
+
+    def learn_feature_directions(self):
+        pass
+        # corr = []
+        # for i in range(self.num_features):
+        #     unicorr = pearsonr(self.X.take(i, 1), self.y)
+        #     if unicorr >= 0:
+        #         corr[i] = 1
+        #     else:
+        #         corr[i] = -1
+        # old_feature_directions = self.feature_directions
+        # self.feature_directions = corr
+        # self.feature_direction_switch = old_feature_directions * corr
+        # self.X = np.matmul(self.X, self.feature_direction_switch)
+
+    def apply_bf(self, state, action):
+        sa_bf = np.zeros([self.num_actions, self.num_features])
+        sa_bf[action] = state
+        return sa_bf.flatten()
 
     def epsilon_greedy(self, state):
         if random.uniform(0, 1) < self.epsilon:
@@ -34,11 +56,6 @@ class QTogetherAgent:
         else:
             action = self.get_highest_q_action(state)[0]
         return action
-
-    def apply_bf(self, state, action):
-        sa_bf = np.zeros([self.num_actions, self.num_features])
-        sa_bf[action] = state
-        return sa_bf.flatten()
 
     def store_data(self, state_features, action, reward, state_prime_features):
         """
@@ -73,6 +90,7 @@ class QTogetherAgent:
                 _, reward, done, info = env.step(action)
                 state_prime = info["state_features"]
                 self.store_data(state, action, reward, state_prime)
+                self.learn_feature_directions()
                 #  self.adjust_reg_param(action)  # TODO
                 self.learn(state, action, reward, state_prime)
                 state = state_prime
