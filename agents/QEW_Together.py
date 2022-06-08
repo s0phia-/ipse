@@ -24,7 +24,7 @@ class QTogetherAgent:
         self.reward_scale = 1
         self.lam = regularisation_strength
         self.gamma = .95
-        self.feature_directions = np.ones[self.num_features * self.num_actions]
+        self.feature_directions = np.ones([self.num_features * self.num_actions])
         self.feature_direction_switch = self.feature_directions  # convert from old feature directions to new
 
     def adjust_reg_param(self, action):
