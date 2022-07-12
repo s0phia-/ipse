@@ -42,7 +42,7 @@ def control_evaluation(agent, env, sleep_time, num_episodes, max_episode_length,
         all_returns.append(statistics.mean(returns))
         agent.run(env=env, episodes=evaluate_every_x_episodes, max_episode_length=max_episode_length,
                   sleep_time=sleep_time, stopping_criteria=stopping_criteria)
-    return all_returns
+    return all_returns, agent.weight_memory
 
 
 def full_run(i_agent, evaluate_every_x_episodes, eval_iterations, sleep, max_ep_len, num_episodes, reg_coef, agent_name,
@@ -52,7 +52,8 @@ def full_run(i_agent, evaluate_every_x_episodes, eval_iterations, sleep, max_ep_
     print(label)
     agent = globals()[agent_name]
     agent = agent(env.num_features, env.action_space, regularisation_strength=reg_coef)
-    returns = control_evaluation(agent, env, sleep, num_episodes, max_ep_len, evaluate_every_x_episodes,
+    returns, weights = control_evaluation(agent, env, sleep, num_episodes, max_ep_len, evaluate_every_x_episodes,
                                  eval_iterations, stopping_criteria)
+    np.save(results_path + '_weights/' + label, weights)
     np.save(results_path + '/' + label, returns)
     return returns
