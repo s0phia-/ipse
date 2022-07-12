@@ -1,18 +1,19 @@
 import numpy as np
 import random
-import time
-from scipy.stats import pearsonr
 from agents.stew.utils import create_diff_matrix
 from utils import random_tiebreak_argmax, fit_lin_reg, fit_ew, fit_ridge, fit_stew
+from agents.LFD import LFD
+import time
 
 
-class QTogetherAgent:
+class QTogetherAgent(LFD):
     """
     Q-learning-derived algorithm regularised with equal weights
     Learn a mapping from state action pairs to max_a(Q(s',a)) + reward
     Similar to the implementation of DQN, but directly fits the closed form solution to the linear function approximator
     """
     def __init__(self, num_features, actions, regularisation_strength=None, exploration=.15):
+        super().__init__(num_features, actions.n)
         self.experience_window = 1000000000
         self.epsilon = exploration
         self.num_features = num_features
@@ -24,79 +25,82 @@ class QTogetherAgent:
         self.reward_scale = 1
         self.lam = regularisation_strength
         self.gamma = .95
-        self.feature_directions = np.ones([self.num_features * self.num_actions])
-        self.feature_direction_switch = self.feature_directions  # convert from old feature directions to new
 
     def adjust_reg_param(self, action):
         n = self.X.shape[0]
         self.lam = 25**(1/np.exp(n/500))-1
 
-    def learn_feature_directions(self):
-        pass
-        # corr = []
-        # for i in range(self.num_features):
-        #     unicorr = pearsonr(self.X.take(i, 1), self.y)
-        #     if unicorr >= 0:
-        #         corr[i] = 1
-        #     else:
-        #         corr[i] = -1
-        # old_feature_directions = self.feature_directions
-        # self.feature_directions = corr
-        # self.feature_direction_switch = old_feature_directions * corr
-        # self.X = np.matmul(self.X, self.feature_direction_switch)
-
     def apply_bf(self, state, action):
         sa_bf = np.zeros([self.num_actions, self.num_features])
         sa_bf[action] = state
-        return sa_bf.flatten()
+        basis_functions = sa_bf.flatten()
+        directed = np.multiply(basis_functions, self.feature_directions)
+        return directed
 
     def epsilon_greedy(self, state):
         if random.uniform(0, 1) < self.epsilon:
             action = self.action_space.sample()
         else:
-            action = self.get_highest_q_action(state)[0]
+            action = self.get_highest_q_action(state, self.old_feature_directions)[0]
         return action
 
-    def store_data(self, state_features, action, reward, state_prime_features):
+    def store_data(self, state_features, action, reward, state_prime_features, done):
         """
         Add the latest observation to X and y
         """
-        est_return_s_prime = reward * self.reward_scale + (self.gamma *
-                                                           self.get_highest_q_action(state_prime_features)[1])
+        if done:
+            target = reward
+        else:
+            target = reward * self.reward_scale \
+                     + (self.gamma * self.get_highest_q_action(state_prime_features, self.old_feature_directions)[1])
         state_action_features = self.apply_bf(state_features, action)
         self.X = np.vstack([self.X, state_action_features])
-        self.y = np.append(self.y, est_return_s_prime)
+        self.y = np.append(self.y, target)
         if self.X.shape[0] > self.experience_window:
             self.X = np.delete(self.X, 0, axis=0)
             self.y = np.delete(self.y, 0, axis=0)
 
-    def get_highest_q_action(self, state_features):
+    def get_highest_q_action(self, state_features, direction):
         """
         Solves argmax_a(Q(s,a)) for given s
-        :return: the action with the highest expected return in the given state, and the corresponding expected return
+        :return: the action with the highest expected-return in the given state, and the corresponding expected return
         """
-        weights = self.beta.reshape([self.num_actions, self.num_features])
+        weights = np.multiply(self.beta, direction)
+        weights = weights.reshape([self.num_actions, self.num_features])
         q_values = np.matmul(weights, state_features)
         argmax_action = random_tiebreak_argmax(q_values)
         return argmax_action, q_values[argmax_action]
 
-    def run(self, env, episodes, max_episode_length=200, sleep_time=0, stopping_criteria=None, *args):
+    def step(self, state, env):
+        action = self.epsilon_greedy(state)  # env.action_space.sample()
+        _, reward, done, info = env.step(action)
+        state_prime = info["state_features"]
+        self.store_data(state, action, reward, state_prime, done)
+        return state, action, reward, state_prime, done
+
+    def run(self, env, episodes, max_episode_length=200, sleep_time=0, which_run="normal",
+            stopping_criteria=None, *args):
+        if which_run == "normal":
+            self.run_normal(env, episodes, max_episode_length=200, sleep_time=0, stopping_criteria=None, *args)
+        elif which_run == "run_lfd_every_step":
+            self.run_lfd_every_step(env, episodes, max_episode_length=200, sleep_time=0, stopping_criteria=None, *args)
+        elif which_run == "run_lfd_once":
+            self.run_lfd_once(env, episodes, max_episode_length=200, sleep_time=0, stopping_criteria=None, *args)
+        elif which_run == "run_lfd_until_decided":
+            self.run_lfd_until_decided(env, episodes, max_episode_length=200, sleep_time=0, stopping_criteria=None, *args)
+
+    def run_normal(self, env, episodes, max_episode_length=200, sleep_time=0, stopping_criteria=None, *args):
         for i in range(episodes):
             env.reset()
             state = env.state_features
             for _ in range(max_episode_length):
                 time.sleep(sleep_time)
-                action = self.epsilon_greedy(state)  # env.action_space.sample()
-                _, reward, done, info = env.step(action)
-                state_prime = info["state_features"]
-                self.store_data(state, action, reward, state_prime)
-                self.learn_feature_directions()
-                #  self.adjust_reg_param(action)  # TODO
+                state, action, reward, state_prime, done = self.step(state, env)
                 self.learn(state, action, reward, state_prime)
+                self.weight_memory.append(self.beta)
                 state = state_prime
                 if done or i == max_episode_length - 1:
                     break
-
 
 ###############################################################
 # create agents as extensions of Q Agent - for easier looping #
@@ -123,7 +127,7 @@ class QStewTogetherAgent(QTogetherAgent):
 
 class QRidgeTogetherAgent(QTogetherAgent):
     def learn(self, *args):
-        if self.X.shape[1] < 20:
+        if self.X.shape[0] < 20:
             pass
         else:
             self.beta = fit_ridge(self.X, self.y, self.lam)
@@ -131,7 +135,7 @@ class QRidgeTogetherAgent(QTogetherAgent):
 
 class QLinRegTogetherAgent(QTogetherAgent):
     def learn(self, *args):
-        if self.X.shape[1] < 100:
+        if self.X.shape[0] < 100:
             pass
         else:
             self.beta = fit_lin_reg(self.X, self.y)
